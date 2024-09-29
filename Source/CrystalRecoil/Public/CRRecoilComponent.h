@@ -22,6 +22,7 @@ public:
 	virtual void TickComponent(float DeltaTime, ELevelTick TickType,
 	                           FActorComponentTickFunction* ThisTickFunction) override;
 
+	UFUNCTION(BlueprintCallable)
 	void SetRecoilPattern(UCRRecoilPattern* InRecoilPattern);
 
 	// Reset Current shot to zero

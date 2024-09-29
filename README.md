@@ -34,15 +34,15 @@ Crystal's Recoil allows you to add templated recoil effects to your shooting gam
 1. 为你的玩家Pawn类继承接口 `ICRRecoilInterface` (必须在C++内继承)  | Inherit the interface `ICRRecoilInterface` for your player Pawn class (must be done in C++)
 2. 为你的玩家Pawn类添加组件 `UCRRecoilComponent`  | Add the component `UCRRecoilComponent` for your player Pawn class
 3. 在玩家Pawn类中实现接口函数 `ICRRecoilInterface::GetRecoilComponent`  和 `GetTargetController`  | Implement the interface functions `ICRRecoilInterface::GetRecoilComponent` and `GetTargetController` in your player Pawn class
-4. 在合适的时候调用 `UCRRecoilComponent::SetRecoilPattern` 为玩家Pawn设置后坐力模板  | Call `UCRRecoilComponent::SetRecoilPattern` to set the recoil template for the player Pawn at the right time
+4. 在合适的时候调用 `UCRRecoilComponent::SetRecoilPattern` 为玩家Pawn设置后坐力模板  | Call `UCRRecoilComponent::SetRecoilPattern` to set the recoil pattern for the player Pawn at the right time
 5. 在合适的时候调用 `ICRRecoilInterface::StartShooting` 和 `StopShooting`  来开始和停止射击（这两个函数是为了决定何时开始后坐力恢复）  | Call `ICRRecoilInterface::StartShooting` and `StopShooting` at the right time to start and stop shooting (these two functions are to determine when to start recoil recovery)
 6. 在调用了 `StartShooting` 之后，在每一枪射击后调用 `ICRRecoilInterface::ApplyShot`  来应用后坐力  | After calling `StartShooting`, call `ICRRecoilInterface::ApplyShot` after each shot to apply recoil
 
 ### Blueprint configuration | 蓝图配置
 
 1. 创建数据资产 `RecoilPattern`  | Create an DataAsset `RecoilPattern`
-2. 打开数据资产并配置后坐力模板  | Open the DataAsset and configure the recoil template
-3. 在合适的时候为玩家的后座力组件设置后座力模板  | Set the recoil template for the player's recoil component at the right time
+2. 打开数据资产并配置后坐力模板  | Open the DataAsset and configure the recoil pattern
+3. 在合适的时候为玩家的后座力组件设置后座力模板  | Set the recoil pattern for the player's recoil component at the right time
 
 ## 额外信息 | Additional Information
 
