@@ -40,10 +40,12 @@ FVector2D UCRRecoilPattern::GetDeltaRecoilLocation(int& InShotIndex)
 	return 0.5 * GetDeltaRecoilLocationInternal(InShotIndex);
 }
 
-EDataValidationResult UCRRecoilPattern::IsDataValid(TArray<FText>& ValidationErrors)
+#if WITH_EDITOR
+EDataValidationResult UCRRecoilPattern::IsDataValid(FDataValidationContext& Context) const
 {
-	return Super::IsDataValid(ValidationErrors);
+	return Super::IsDataValid(Context);
 }
+#endif
 
 int32 UCRRecoilPattern::GetMaxShotIndex() const
 {

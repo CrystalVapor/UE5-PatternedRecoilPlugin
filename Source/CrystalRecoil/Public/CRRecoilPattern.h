@@ -48,7 +48,7 @@ public:
 	FVector2D GetDeltaRecoilLocation(OUT int& InShotIndex);
 
 #if WITH_EDITOR
-	virtual EDataValidationResult IsDataValid(TArray<FText>& ValidationErrors) override;
+	virtual EDataValidationResult IsDataValid(FDataValidationContext& Context)const override;
 #endif
 	
 	int32 GetMaxShotIndex() const;
