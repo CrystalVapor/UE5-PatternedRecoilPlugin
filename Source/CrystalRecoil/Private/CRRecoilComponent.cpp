@@ -108,16 +108,11 @@ FRotator UCRRecoilComponent::VectorToRotator(const FVector2D InputVector)
 }
 
 
-ICRRecoilInterface* UCRRecoilComponent::GetOwnerRecoilInterface() const
-{
-	return Cast<ICRRecoilInterface>(GetOwner());
-}
-
 AController* UCRRecoilComponent::GetTargetController() const
 {
-	ICRRecoilInterface* RecoilInterface = GetOwnerRecoilInterface();
-	check(RecoilInterface);
-	return RecoilInterface->GetTargetController();
+	UObject* Owner = GetOwner();
+	check(Owner&& Owner->Implements<UCRRecoilInterface>())
+	return ICRRecoilInterface::Execute_K2_GetTargetController(Owner);
 }
 
 bool UCRRecoilComponent::ProcessDeltaRecoilRotation(FRotator& DeltaRecoilRotation)

@@ -38,8 +38,6 @@ public:
 
 protected:
 	static FRotator VectorToRotator(const FVector2D InputVector);
-	
-	ICRRecoilInterface* GetOwnerRecoilInterface() const;
 
 	AController* GetTargetController() const;
 
