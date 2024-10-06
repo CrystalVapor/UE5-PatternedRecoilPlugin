@@ -21,8 +21,8 @@ public:
 
 	void SetRecoilHeat(float InHeat);
 
-	UFUNCTION(BlueprintCallable)
-	inline float GetRecoilHeat() const;
+	UFUNCTION(BlueprintCallable, BlueprintPure)
+	float GetRecoilHeat() const;
 
 	void SetMaxRecoilHeat(float InMaxHeat);
 
