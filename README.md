@@ -10,9 +10,10 @@ Crystal's Recoil allows you to add templated recoil effects to your shooting gam
 
 ## 特性 | Features
 
-- 模板化后坐力  | Templated Recoil
+- 模板化后坐力  | Patterned Recoil
 - 完全的GUI界面  | Full GUI Interface
 - 易于使用的代码接口  | Easy-to-use Code Interface
+- 完全的蓝图支持 | Blueprints Fully Accessible
 - 支持后坐力回复/补偿(未完成)  | Support Recoil Recovery/Compensation (Not Finished)
 
 ## 安装 | Installation
@@ -29,24 +30,29 @@ Crystal's Recoil allows you to add templated recoil effects to your shooting gam
 
 ## 使用 | Usage
 
-### C++接口 | C++ Interface
+1. 为Actor添加组件`UCRRecoilComponent`(玩家Pawn, 枪械或者其他Actor都可以) | Add the component `UCRRecoilComponent` to an Actor (Player Pawn, FireArm or other Actor)
+2. 为拥有`CRRecoilComponent`的Actor实现接口`ICRRecoilInterface` | Implement the interface `ICRRecoilInterface` for the Actor that has the `CRRecoilComponent`
+3. 覆写函数`ICRRecoilInterface::GetRecoilComponent`，使其返回相应的后坐力组件 | Override the function `ICRRecoilInterface::GetRecoilComponent` to return the corresponding recoil component
+4. 覆写函数`ICRRecoilInterface::GetTargetController`，使其返回需要应用后坐力的玩家控制器 | Override the function `ICRRecoilInterface::GetTargetController` to return the player controller that needs to apply the recoil
+5. 创建资产`CRRecoilPattern`，并使用编辑器设置一个合适的后坐力行为 | Create an asset `CRRecoilPattern` and set a suitable recoil behavior in the editor
+6. 在合适的时候调用`UCRRecoilComponent::SetRecoilPattern`为后坐力组件设置后坐力模板 | Call `UCRRecoilComponent::SetRecoilPattern` to set the recoil pattern for the recoil component at the appropriate time
+7. 在每一次连射的开始调用`ICRRecoilInterface::StartShooting`，在每一枪射击后调用`ICRRecoilInterface::ApplyShot` | Call `ICRRecoilInterface::StartShooting` at the beginning of each burst(Usually every LMB pressed), and call `ICRRecoilInterface::ApplyShot` after each shot
 
-1. 为你的玩家Pawn类继承接口 `ICRRecoilInterface` (必须在C++内继承)  | Inherit the interface `ICRRecoilInterface` for your player Pawn class (must be done in C++)
-2. 为你的玩家Pawn类添加组件 `UCRRecoilComponent`  | Add the component `UCRRecoilComponent` for your player Pawn class
-3. 在玩家Pawn类中实现接口函数 `ICRRecoilInterface::GetRecoilComponent`  和 `GetTargetController`  | Implement the interface functions `ICRRecoilInterface::GetRecoilComponent` and `GetTargetController` in your player Pawn class
-4. 在合适的时候调用 `UCRRecoilComponent::SetRecoilPattern` 为玩家Pawn设置后坐力模板  | Call `UCRRecoilComponent::SetRecoilPattern` to set the recoil pattern for the player Pawn at the right time
-5. 在合适的时候调用 `ICRRecoilInterface::StartShooting` 和 `StopShooting`  来开始和停止射击（这两个函数是为了决定何时开始后坐力恢复）  | Call `ICRRecoilInterface::StartShooting` and `StopShooting` at the right time to start and stop shooting (these two functions are to determine when to start recoil recovery)
-6. 在调用了 `StartShooting` 之后，在每一枪射击后调用 `ICRRecoilInterface::ApplyShot`  来应用后坐力  | After calling `StartShooting`, call `ICRRecoilInterface::ApplyShot` after each shot to apply recoil
+## 后坐力实现 | Recoil Implement Details
 
-### 蓝图配置 | Blueprint Configuration
-
-1. 创建数据资产 `RecoilPattern`  | Create an DataAsset `RecoilPattern`
-2. 打开数据资产并配置后坐力模板  | Open the DataAsset and configure the recoil pattern
-3. 在合适的时候为玩家的后座力组件设置后座力模板  | Set the recoil pattern for the player's recoil component at the right time
+插件模拟后坐力的方式是： | The way the plugin simulates recoil is:
+首先根据模板中的坐标确定准星需要移动的矢量路程 | First, determine the vector distance the reticle needs to move based on the coordinates in the template
+然后使用在后坐力模板中写入的准星抬升时间和制动加速度计算所需的准星初速度 | Then calculate the initial velocity of the reticle required using the reticle rise time and braking acceleration written in the recoil template
+随后将初速度转换为角动量并施加，在过程中逐渐应用制动加速度直到准星到达预定位置 | Then convert the initial velocity to angular momentum and apply it, gradually applying the braking acceleration until the reticle reaches the predetermined position
 
 ## 额外信息 | Additional Information
 
 插件附带一个SpreadRecoilComponent，它可以用于在射击时添加随机的扩散效果。  | The plugin comes with a SpreadRecoilComponent, which can be used to add random spread effects when shooting.
+扩散效果基于三条`FRichCurve`曲线 | The spread effect is based on three `FRichCurve` curves
+`ShotToHeatCurve` - 定义了每一枪射击增加的热量 | Defines the heat added by each shot
+`HeatToSpreadAngleCurve` - 定义了当前热量对应的扩散角度 | Defines the spread angle corresponding to the current heat
+`HeatToCooldownPerSecondCurve` - 定义了当前热量下每秒冷却的热量 | Defines the heat that cools down per second under the current heat
+三条曲线设置完成后，可以在开枪前计算射线时调用`UCRSpreadRecoilComponent::GetCurrentSpreadAngle`来获取当前的扩散角度 | After setting the three curves, you can call `UCRSpreadRecoilComponent::GetCurrentSpreadAngle` to get the current spread angle when calculating the ray before shooting
 
 ## 许可证 | License
 
