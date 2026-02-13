@@ -17,7 +17,8 @@ void SCRRecoilUnitGraphWidget::Construct(const FArguments& InArgs)
 
 	RegisterCommands();
 
-	const FSlateFontInfo FontInfo = FCoreStyle::GetDefaultFontStyle("Regular", 11);
+	const FSlateFontInfo FontInfo = FCoreStyle::GetDefaultFontStyle("Regular", 9);
+	const FSlateFontInfo TitleFontInfo = FCoreStyle::GetDefaultFontStyle("Bold", 10);
 
 	ChildSlot
 	[
@@ -40,18 +41,210 @@ void SCRRecoilUnitGraphWidget::Construct(const FArguments& InArgs)
 			[
 				SNew(SBorder)
 				.BorderImage(FAppStyle::GetBrush(TEXT("Graph.TitleBackground")))
+				.Visibility_Lambda([this]() { return RecoilPatternEditor->bShowShortcuts ? EVisibility::Visible : EVisibility::Collapsed; })
 			]
-			+SOverlay::Slot() // 
+			+SOverlay::Slot()
 			.HAlign(HAlign_Fill)
 			.VAlign(VAlign_Fill)
 			.Padding(8.f)
 			[
-				SNew(SVerticalBox)
+				SAssignNew(ShortcutsContainer, SVerticalBox)
+				.Visibility_Lambda([this]() { return RecoilPatternEditor->bShowShortcuts ? EVisibility::Visible : EVisibility::Collapsed; })
 				+SVerticalBox::Slot()
 				.AutoHeight()
 				[
 					SNew(STextBlock)
-					.Text(FText::FromString(TEXT("This is a Status bar!")))
+					.Font(TitleFontInfo)
+					.Text(FText::FromString(TEXT("Editor Shortcuts")))
+				]
+				+SVerticalBox::Slot()
+				.AutoHeight()
+				.Padding(0.f, 4.f, 0.f, 0.f)
+				[
+					SNew(SHorizontalBox)
+					+SHorizontalBox::Slot()
+					.AutoWidth()
+					[
+						SNew(STextBlock)
+						.Font(TitleFontInfo)
+						.Text(FText::FromString(TEXT("N:")))
+					]
+					+SHorizontalBox::Slot()
+					.AutoWidth()
+					.Padding(4.f, 0.f, 0.f, 0.f)
+					[
+						SNew(STextBlock)
+						.Font(FontInfo)
+						.Text(FText::FromString(TEXT("Add Unit")))
+					]
+				]
+				+SVerticalBox::Slot()
+				.AutoHeight()
+				.Padding(0.f, 2.f, 0.f, 0.f)
+				[
+					SNew(SHorizontalBox)
+					+SHorizontalBox::Slot()
+					.AutoWidth()
+					[
+						SNew(STextBlock)
+						.Font(TitleFontInfo)
+						.Text(FText::FromString(TEXT("Del:")))
+					]
+					+SHorizontalBox::Slot()
+					.AutoWidth()
+					.Padding(4.f, 0.f, 0.f, 0.f)
+					[
+						SNew(STextBlock)
+						.Font(FontInfo)
+						.Text(FText::FromString(TEXT("Remove")))
+					]
+				]
+				+SVerticalBox::Slot()
+				.AutoHeight()
+				.Padding(0.f, 2.f, 0.f, 0.f)
+				[
+					SNew(SHorizontalBox)
+					+SHorizontalBox::Slot()
+					.AutoWidth()
+					[
+						SNew(STextBlock)
+						.Font(TitleFontInfo)
+						.Text(FText::FromString(TEXT("Ctrl+A:")))
+					]
+					+SHorizontalBox::Slot()
+					.AutoWidth()
+					.Padding(4.f, 0.f, 0.f, 0.f)
+					[
+						SNew(STextBlock)
+						.Font(FontInfo)
+						.Text(FText::FromString(TEXT("Select All")))
+					]
+				]
+				+SVerticalBox::Slot()
+				.AutoHeight()
+				.Padding(0.f, 2.f, 0.f, 0.f)
+				[
+					SNew(SHorizontalBox)
+					+SHorizontalBox::Slot()
+					.AutoWidth()
+					[
+						SNew(STextBlock)
+						.Font(TitleFontInfo)
+						.Text(FText::FromString(TEXT("Ctrl+C/V:")))
+					]
+					+SHorizontalBox::Slot()
+					.AutoWidth()
+					.Padding(4.f, 0.f, 0.f, 0.f)
+					[
+						SNew(STextBlock)
+						.Font(FontInfo)
+						.Text(FText::FromString(TEXT("Copy/Paste")))
+					]
+				]
+				+SVerticalBox::Slot()
+				.AutoHeight()
+				.Padding(0.f, 2.f, 0.f, 0.f)
+				[
+					SNew(SHorizontalBox)
+					+SHorizontalBox::Slot()
+					.AutoWidth()
+					[
+						SNew(STextBlock)
+						.Font(TitleFontInfo)
+						.Text(FText::FromString(TEXT("Shift+S:")))
+					]
+					+SHorizontalBox::Slot()
+					.AutoWidth()
+					.Padding(4.f, 0.f, 0.f, 0.f)
+					[
+						SNew(STextBlock)
+						.Font(FontInfo)
+						.Text(FText::FromString(TEXT("Snap")))
+					]
+				]
+				+SVerticalBox::Slot()
+				.AutoHeight()
+				.Padding(0.f, 2.f, 0.f, 0.f)
+				[
+					SNew(SHorizontalBox)
+					+SHorizontalBox::Slot()
+					.AutoWidth()
+					[
+						SNew(STextBlock)
+						.Font(TitleFontInfo)
+						.Text(FText::FromString(TEXT("S:")))
+					]
+					+SHorizontalBox::Slot()
+					.AutoWidth()
+					.Padding(4.f, 0.f, 0.f, 0.f)
+					[
+						SNew(STextBlock)
+						.Font(FontInfo)
+						.Text(FText::FromString(TEXT("Scale")))
+					]
+				]
+				+SVerticalBox::Slot()
+				.AutoHeight()
+				.Padding(0.f, 2.f, 0.f, 0.f)
+				[
+					SNew(SHorizontalBox)
+					+SHorizontalBox::Slot()
+					.AutoWidth()
+					[
+						SNew(STextBlock)
+						.Font(TitleFontInfo)
+						.Text(FText::FromString(TEXT("R:")))
+					]
+					+SHorizontalBox::Slot()
+					.AutoWidth()
+					.Padding(4.f, 0.f, 0.f, 0.f)
+					[
+						SNew(STextBlock)
+						.Font(FontInfo)
+						.Text(FText::FromString(TEXT("Arrange")))
+					]
+				]
+				+SVerticalBox::Slot()
+				.AutoHeight()
+				.Padding(0.f, 2.f, 0.f, 0.f)
+				[
+					SNew(SHorizontalBox)
+					+SHorizontalBox::Slot()
+					.AutoWidth()
+					[
+						SNew(STextBlock)
+						.Font(TitleFontInfo)
+						.Text(FText::FromString(TEXT("O:")))
+					]
+					+SHorizontalBox::Slot()
+					.AutoWidth()
+					.Padding(4.f, 0.f, 0.f, 0.f)
+					[
+						SNew(STextBlock)
+						.Font(FontInfo)
+						.Text(FText::FromString(TEXT("Reset View")))
+					]
+				]
+				+SVerticalBox::Slot()
+				.AutoHeight()
+				.Padding(0.f, 2.f, 0.f, 0.f)
+				[
+					SNew(SHorizontalBox)
+					+SHorizontalBox::Slot()
+					.AutoWidth()
+					[
+						SNew(STextBlock)
+						.Font(TitleFontInfo)
+						.Text(FText::FromString(TEXT("H:")))
+					]
+					+SHorizontalBox::Slot()
+					.AutoWidth()
+					.Padding(4.f, 0.f, 0.f, 0.f)
+					[
+						SNew(STextBlock)
+						.Font(FontInfo)
+						.Text(FText::FromString(TEXT("Toggle Shortcuts")))
+					]
 				]
 			]
 		]
@@ -108,7 +301,7 @@ FReply SCRRecoilUnitGraphWidget::OnMouseButtonDown(const FGeometry& MyGeometry, 
 {
 	SelectionDrag.Reset();
 
-	FVector2D MousePanelLocation = MyGeometry.AbsoluteToLocal(MouseEvent.GetScreenSpacePosition());
+	FVector2f MousePanelLocation = MyGeometry.AbsoluteToLocal(MouseEvent.GetScreenSpacePosition());
 	if(MouseEvent.GetEffectingButton() == EKeys::RightMouseButton)
 	{
 		ViewDrag = FCRUnitGraphViewDelayedDrag(
@@ -136,7 +329,7 @@ FReply SCRRecoilUnitGraphWidget::OnMouseButtonDown(const FGeometry& MyGeometry, 
 			MoveUnitsDrag = FCRUnitGraphMoveUnitsDelayedDrag(
 				GetUnitGraph(),
 				CurrentRecoilUnitSelection,
-				GraphCoordsToRecoilCoords(BackgroundWidget->PanelCoordToGraphCoord(MousePanelLocation)),
+				GetUnitGraph()->GetUnitByID(LastLeftMouseDownFoundUnitID)->Location,
 				MousePanelLocation,
 				EKeys::LeftMouseButton);
 		}
@@ -195,17 +388,17 @@ FReply SCRRecoilUnitGraphWidget::OnMouseMove(const FGeometry& MyGeometry, const 
 
 	if(MoveUnitsDrag.IsSet() && (MoveUnitsDrag->IsDragging() || MoveUnitsDrag->AttemptDragStart(MouseEvent)))
 	{
-		const FVector2d NewPanelLocation = CurrentMousePanelPosition;
-		const FVector2d NewGraphLocation = BackgroundWidget->PanelCoordToGraphCoord(NewPanelLocation);
-		const FVector2d NewRecoilLocation = GraphCoordsToRecoilCoords(NewGraphLocation);
-		const FVector2d LastRecoilLocation = MoveUnitsDrag->LastRecoilCoordsLocation;
+		const FVector2f NewPanelLocation = CurrentMousePanelPosition;
+		const FVector2f NewGraphLocation = BackgroundWidget->PanelCoordToGraphCoord(NewPanelLocation);
+		const FVector2f NewRecoilLocation = GraphCoordsToRecoilCoords(NewGraphLocation);
+		const FVector2f LastRecoilLocation = MoveUnitsDrag->LastRecoilCoordsLocation;
 		
 		const bool bEnableGridSnapping = RecoilPatternEditor->bEnableGridSnapping;
 	    const float GridSnapSize = RecoilPatternEditor->GridSnappingValue;
 		const FCRRecoilUnitSelection& RecoilUnitSelection = GetRecoilUnitSelection();
 		if(!bEnableGridSnapping)
 		{
-			const FVector2d DeltaRecoilLocation = NewRecoilLocation - LastRecoilLocation;
+			const FVector2f DeltaRecoilLocation = NewRecoilLocation - LastRecoilLocation;
 			MoveUnitsDrag->ApplyMovement(const_cast<FCRRecoilUnitSelection&>(RecoilUnitSelection), DeltaRecoilLocation);
 			MoveUnitsDrag->LastRecoilCoordsLocation = NewRecoilLocation;
 		}
@@ -213,10 +406,10 @@ FReply SCRRecoilUnitGraphWidget::OnMouseMove(const FGeometry& MyGeometry, const 
 		{
 			UCRRecoilUnitGraph* CurrentRecoilUnitGraph = GetUnitGraph();
 			const FCRRecoilUnit& LastRecoilUnit = *(CurrentRecoilUnitGraph->GetUnitByID(LastLeftMouseDownFoundUnitID));
-			const FVector2d SnappedNewRecoilLocation = FVector2d(
+			const FVector2f SnappedNewRecoilLocation = FVector2f(
 				FMath::RoundToInt(NewRecoilLocation.X / GridSnapSize) * GridSnapSize,
 				FMath::RoundToInt(NewRecoilLocation.Y / GridSnapSize) * GridSnapSize);
-			const FVector2d DeltaRecoilLocation = SnappedNewRecoilLocation - LastRecoilUnit.Location;
+			const FVector2f DeltaRecoilLocation = SnappedNewRecoilLocation - LastRecoilUnit.Location;
 			MoveUnitsDrag->ApplyMovement(const_cast<FCRRecoilUnitSelection&>(RecoilUnitSelection), DeltaRecoilLocation);
 			MoveUnitsDrag->LastRecoilCoordsLocation = SnappedNewRecoilLocation;
 		}
@@ -225,9 +418,9 @@ FReply SCRRecoilUnitGraphWidget::OnMouseMove(const FGeometry& MyGeometry, const 
 
 	if(ScaleUnitsDrag.IsSet())
 	{
-		const FVector2d NewPanelLocation = CurrentMousePanelPosition;
-		const FVector2d InitialPanelLocation = ScaleUnitsDrag->InitialPanelLocation;
-		const FVector2d ScaleVector = NewPanelLocation - InitialPanelLocation;
+		const FVector2f NewPanelLocation = CurrentMousePanelPosition;
+		const FVector2f InitialPanelLocation = ScaleUnitsDrag->InitialPanelLocation;
+		const FVector2f ScaleVector = NewPanelLocation - InitialPanelLocation;
 		const float NewScale = ScaleVector.Size() / ScaleUnitsDrag->NormalVectorSizePanel;
 		const FCRRecoilUnitSelection& RecoilUnitSelection = GetRecoilUnitSelection();
 		ScaleUnitsDrag->ApplyScaling(RecoilUnitSelection, NewScale);
@@ -262,11 +455,9 @@ FReply SCRRecoilUnitGraphWidget::OnKeyUp(const FGeometry& MyGeometry, const FKey
 void SCRRecoilUnitGraphWidget::DrawOrigin(FSlateWindowElementList& OutDrawElements, const FGeometry& AllottedGeometry,
 	int32 BaseLayerID) const
 {
-	FVector2d OriginGraphCoords = FVector2d::ZeroVector;
-	FVector2d OriginPanelCoords = BackgroundWidget->GraphCoordToPanelCoord(OriginGraphCoords);
-	const FVector2d OriginDrawSize = CrystalRecoilEditor::OriginDrawSize;
-	const FVector2d OriginDrawOffset = OriginDrawSize/2;
-	const FSlateRect OriginDrawRect = FSlateRect(OriginPanelCoords - OriginDrawOffset, OriginPanelCoords + OriginDrawOffset);
+	const FVector2f OriginPanelCoords = BackgroundWidget->GraphCoordToPanelCoord(FVector2f::ZeroVector);
+	const FVector2f OriginDrawSize = CrystalRecoilEditor::OriginDrawSize;
+	const FVector2f OriginDrawOffset = OriginDrawSize/2;
 	FSlateDrawElement::MakeBox(
 		OutDrawElements,
 		BaseLayerID + CrystalRecoilEditor::EEditorLayerOffset::OriginLayer,
@@ -283,7 +474,7 @@ void SCRRecoilUnitGraphWidget::DrawRecoilUnits(FSlateWindowElementList& OutDrawE
 	const UCRRecoilUnitGraph*		CurrentRecoilUnitGraph = GetUnitGraph();
 	
 	const int32						UnitCount = CurrentRecoilUnitGraph->GetUnitCount();
-	const FVector2D					UnitDrawSize = CrystalRecoilEditor::UnitDrawSize;
+	const FVector2f					UnitDrawSize = CrystalRecoilEditor::UnitDrawSize;
 	const FCRRecoilUnitSelection&	UnitSelection = GetRecoilUnitSelection();
 	const int32						UnitLayerID = BaseLayerID + CrystalRecoilEditor::EEditorLayerOffset::RecoilUnitsLayer;
 	const int32						UnitNumberLayerID = BaseLayerID + CrystalRecoilEditor::EEditorLayerOffset::RecoilUnitNumbersLayer;
@@ -295,14 +486,14 @@ void SCRRecoilUnitGraphWidget::DrawRecoilUnits(FSlateWindowElementList& OutDrawE
 	const bool bDrawUnitNumbers = CurrentRecoilUnitGraph->bDrawUnitNumbers
 		&& (CurrentBackgroundWidget->GetCurrentLOD() >= EGraphRenderingLOD::MediumDetail);
 	
-	for(int32 i = 0; i< UnitCount; i++)
+	for (int32 Index = 0; Index < UnitCount; ++Index)
 	{
-		const FCRRecoilUnit& RecoilUnit = CurrentRecoilUnitGraph->GetUnitAt(i);
-		const FVector2D RecoilUnitCenterGraphLocation = RecoilCoordsToGraphCoords(RecoilUnit.Location);
-		const FVector2D RecoilUnitDrawGraphLocation = RecoilUnitCenterGraphLocation;
-		const FVector2D RecoilUnitDrawPanelLocation = CurrentBackgroundWidget->GraphCoordToPanelCoord(RecoilUnitDrawGraphLocation) - UnitDrawSize / 2.f;
+		const FCRRecoilUnit& RecoilUnit = CurrentRecoilUnitGraph->GetUnitAt(Index);
+		const FVector2f RecoilUnitCenterGraphLocation = RecoilCoordsToGraphCoords(RecoilUnit.Location);
+		const FVector2f RecoilUnitDrawGraphLocation = RecoilUnitCenterGraphLocation;
+		const FVector2f RecoilUnitDrawPanelLocation = CurrentBackgroundWidget->GraphCoordToPanelCoord(RecoilUnitDrawGraphLocation) - UnitDrawSize / 2.f;
 		const bool bIsSelected = UnitSelection.IsUnitSelected(RecoilUnit.ID);
-		const FLinearColor UnitColor = bIsSelected ? FLinearColor::Green : FLinearColor::Yellow;
+		const FLinearColor& UnitColor = bIsSelected ? FLinearColor::Green : FLinearColor::Yellow;
 
 		FSlateDrawElement::MakeBox(
 			OutDrawElements,
@@ -314,24 +505,24 @@ void SCRRecoilUnitGraphWidget::DrawRecoilUnits(FSlateWindowElementList& OutDrawE
 
 		if(bDrawUnitNumbers)
 		{
-			const FVector2d& UnitNumberDrawOffset = CrystalRecoilEditor::UnitNumberDrawOffset;
-			const FVector2d& UnitNumberDrawSize = CrystalRecoilEditor::UnitNumberDrawSize;
+			const FVector2f& UnitNumberDrawOffset = CrystalRecoilEditor::UnitNumberDrawOffset;
+			const FVector2f& UnitNumberDrawSize = CrystalRecoilEditor::UnitNumberDrawSize;
 			FSlateDrawElement::MakeText(
 				OutDrawElements,
 				UnitNumberLayerID,
 				AllottedGeometry.ToPaintGeometry(UnitNumberDrawSize, FSlateLayoutTransform(RecoilUnitDrawPanelLocation + UnitNumberDrawOffset + UnitNumberDrawSize / 2.f)),
-				FString::FromInt(i),
+				FString::FromInt(Index),
 				NumberFontInfo,
 				ESlateDrawEffect::None,
 				FLinearColor::Red);
 		}
 
-		if(bDrawUnitLines && i != 0)
+		if(bDrawUnitLines && Index != 0)
 		{
-			const FCRRecoilUnit& PreviousRecoilUnit = CurrentRecoilUnitGraph->GetUnitAt(i-1);
-			const FVector2D PreviousRecoilUnitCenterGraphLocation = RecoilCoordsToGraphCoords(PreviousRecoilUnit.Location);
-			const FVector2D PreviousRecoilUnitCenterPanelLocation = CurrentBackgroundWidget->GraphCoordToPanelCoord(PreviousRecoilUnitCenterGraphLocation);
-			const FVector2D RecoilUnitCenterPanelLocation = CurrentBackgroundWidget->GraphCoordToPanelCoord(RecoilUnitCenterGraphLocation);
+			const FCRRecoilUnit& PreviousRecoilUnit = CurrentRecoilUnitGraph->GetUnitAt(Index-1);
+			const FVector2f PreviousRecoilUnitCenterGraphLocation = RecoilCoordsToGraphCoords(PreviousRecoilUnit.Location);
+			const FVector2f PreviousRecoilUnitCenterPanelLocation = CurrentBackgroundWidget->GraphCoordToPanelCoord(PreviousRecoilUnitCenterGraphLocation);
+			const FVector2f RecoilUnitCenterPanelLocation = CurrentBackgroundWidget->GraphCoordToPanelCoord(RecoilUnitCenterGraphLocation);
 			FSlateDrawElement::MakeLines(
 				OutDrawElements,
 				UnitLayerID,
@@ -393,7 +584,7 @@ void SCRRecoilUnitGraphWidget::DrawSingleGridAxisNumber(int32 LineIndex, float O
 					FVector2d(GridLineNumber * ScaleFromRecoilCoordsToGraphCoords, 0.f) :
 					FVector2d(0.f, GridLineNumber * ScaleFromRecoilCoordsToGraphCoords);
 
-	FVector2d GridLineNumberPanelCoords = BackgroundWidget->GraphCoordToPanelCoord(GridLineNumberGraphCoords);
+	FVector2f GridLineNumberPanelCoords = BackgroundWidget->GraphCoordToPanelCoord(GridLineNumberGraphCoords);
 	if(Axis == Axis_X)
 	{
 		GridLineNumberPanelCoords.Y = 0.f;
@@ -419,7 +610,7 @@ void SCRRecoilUnitGraphWidget::DrawSingleGridAxisNumber(int32 LineIndex, float O
 		FLinearColor::White :
 		FLinearColor::White.CopyWithNewOpacity(0.65f);
 	const FVector2d GridTickTextSize = FontMeasure->Measure(GridTickText, NumberFontInfo);
-	FVector2d GridTickDrawnPosition = GridLineNumberPanelCoords;
+	FVector2f GridTickDrawnPosition = GridLineNumberPanelCoords;
 	if(Axis == Axis_X)
 	{
 		GridTickDrawnPosition.X -= GridTickTextSize.X / 2.f;
@@ -461,11 +652,11 @@ void SCRRecoilUnitGraphWidget::AddUnitUnderCursor()
 	UCRRecoilUnitGraph* CurrentRecoilUnitGraph = GetUnitGraph();
 	FScopedTransaction Transaction(NSLOCTEXT("SCRRecoilUnitGraphWidget", "AddUnitUnderCursor", "Add Unit Under Cursor"));
 	CurrentRecoilUnitGraph->Modify();
-	FVector2d CurrentMouseRecoilLocation = GraphCoordsToRecoilCoords(BackgroundWidget->PanelCoordToGraphCoord(CurrentMousePanelPosition));
+	FVector2f CurrentMouseRecoilLocation = GraphCoordsToRecoilCoords(BackgroundWidget->PanelCoordToGraphCoord(CurrentMousePanelPosition));
 	CurrentRecoilUnitGraph->AddUnit(CurrentMouseRecoilLocation);
 }
 
-void SCRRecoilUnitGraphWidget::AddUnit(FVector2d RecoilLocation)
+void SCRRecoilUnitGraphWidget::AddUnit(FVector2f RecoilLocation)
 {
 	UCRRecoilUnitGraph* CurrentRecoilUnitGraph = GetUnitGraph();
 	FScopedTransaction Transaction(NSLOCTEXT("SCRRecoilUnitGraphWidget", "AddUnit", "Add Unit"));
@@ -504,12 +695,12 @@ void SCRRecoilUnitGraphWidget::PasteUnits()
 		return;
 	}
 	UCRRecoilUnitGraph* CurrentRecoilUnitGraph = GetUnitGraph();
-	FVector2d CurrentMouseRecoilLocation = GraphCoordsToRecoilCoords(BackgroundWidget->PanelCoordToGraphCoord(CurrentMousePanelPosition));
+	FVector2f CurrentMouseRecoilLocation = GraphCoordsToRecoilCoords(BackgroundWidget->PanelCoordToGraphCoord(CurrentMousePanelPosition));
 	FScopedTransaction Transaction(NSLOCTEXT("SCRRecoilUnitGraphWidget", "PasteUnits", "Paste Units"));
 	CurrentRecoilUnitGraph->Modify();
 	for(auto& Location : CopiedData.RecoilUnitLocations)
 	{
-		CurrentRecoilUnitGraph->AddUnit(Location+CurrentMouseRecoilLocation);
+		CurrentRecoilUnitGraph->AddUnit(Location + CurrentMouseRecoilLocation);
 	}
 }
 
@@ -531,16 +722,16 @@ void SCRRecoilUnitGraphWidget::DeleteUnits()
 void SCRRecoilUnitGraphWidget::StartUnitScaling()
 {
 	TArray<FCRRecoilUnit*> SelectedUnits = GetRecoilUnitSelection().GetSelectedRecoilUnits(GetUnitGraph());
-	FVector2D AverageLocation = FVector2d::ZeroVector;
+	FVector2f AverageLocation = FVector2f::ZeroVector;
 	const int32 Num = SelectedUnits.Num();
 	for(int i= 0; i<Num; i++)
 	{
 		AverageLocation += SelectedUnits[i]->Location;
 	}
 	AverageLocation /= Num;
-	const FVector2d CurrentMouseRecoilPosition = GraphCoordsToRecoilCoords(BackgroundWidget->PanelCoordToGraphCoord(CurrentMousePanelPosition));
-	const FVector2d MidRecoilLocation = (AverageLocation + CurrentMouseRecoilPosition) / 2.f;
-	const FVector2D MidPanelLocation = BackgroundWidget->GraphCoordToPanelCoord(RecoilCoordsToGraphCoords(MidRecoilLocation));
+	const FVector2f CurrentMouseRecoilPosition = GraphCoordsToRecoilCoords(BackgroundWidget->PanelCoordToGraphCoord(CurrentMousePanelPosition));
+	const FVector2f MidRecoilLocation = (AverageLocation + CurrentMouseRecoilPosition) / 2.f;
+	const FVector2f MidPanelLocation = BackgroundWidget->GraphCoordToPanelCoord(RecoilCoordsToGraphCoords(MidRecoilLocation));
 	ScaleUnitsDrag = FCRUnitGraphScaleUnitsDelayedDrag(
 		GetUnitGraph(),
 		GetRecoilUnitSelection(),
@@ -573,30 +764,30 @@ FCRRecoilUnitSelection& SCRRecoilUnitGraphWidget::GetRecoilUnitSelection() const
 	return RecoilPatternEditor->GetRecoilUnitSelection();
 }
 
-FVector2D SCRRecoilUnitGraphWidget::RecoilCoordsToGraphCoords(FVector2D RecoilCoords) const
+FVector2f SCRRecoilUnitGraphWidget::RecoilCoordsToGraphCoords(FVector2f RecoilCoords) const
 {
 	RecoilCoords.Y *= -1.f;
 	RecoilCoords*= ScaleFromRecoilCoordsToGraphCoords;
 	return RecoilCoords;
 }
 
-FVector2D SCRRecoilUnitGraphWidget::GraphCoordsToRecoilCoords(FVector2D GraphCoords) const
+FVector2f SCRRecoilUnitGraphWidget::GraphCoordsToRecoilCoords(FVector2f GraphCoords) const
 {
 	GraphCoords.Y *= -1.f;
 	GraphCoords /= ScaleFromRecoilCoordsToGraphCoords;
 	return GraphCoords;
 }
 
-int32 SCRRecoilUnitGraphWidget::FindUnitByScreenLocation(const FVector2D& ScreenLocation, const FGeometry& MyGeometry) const
+int32 SCRRecoilUnitGraphWidget::FindUnitByScreenLocation(const FVector2f& ScreenLocation, const FGeometry& MyGeometry) const
 {
 	const UCRRecoilUnitGraph* CurrentRecoilUnitGraph = GetUnitGraph();
 	const int32 UnitCount = CurrentRecoilUnitGraph->GetUnitCount();
-	const FVector2D UnitDrawSize = CrystalRecoilEditor::UnitDrawSize;
+	const FVector2f UnitDrawSize = CrystalRecoilEditor::UnitDrawSize;
 	for(int i = 0; i<UnitCount; i++)
 	{
 		const FCRRecoilUnit& RecoilUnit = CurrentRecoilUnitGraph->GetUnitAt(i);
-		const FVector2D RecoilUnitCenterGraphLocation = RecoilCoordsToGraphCoords(RecoilUnit.Location);
-		const FVector2D RecoilUnitCenterPanelLocation = BackgroundWidget->GraphCoordToPanelCoord(RecoilUnitCenterGraphLocation);
+		const FVector2f RecoilUnitCenterGraphLocation = RecoilCoordsToGraphCoords(RecoilUnit.Location);
+		const FVector2f RecoilUnitCenterPanelLocation = BackgroundWidget->GraphCoordToPanelCoord(RecoilUnitCenterGraphLocation);
 		const FSlateRect UnitRect(
 			RecoilUnitCenterPanelLocation - UnitDrawSize / 2.f,
 			RecoilUnitCenterPanelLocation + UnitDrawSize / 2.f);
@@ -615,8 +806,8 @@ void SCRRecoilUnitGraphWidget::SelectUnitsInPanelCoordsRect(FSlateRect& Selectio
 	for(int i = 0;i< CurrentRecoilUnitGraph->GetUnitCount(); i++)
 	{
 		const FCRRecoilUnit& RecoilUnit = CurrentRecoilUnitGraph->GetUnitAt(i);
-		const FVector2D RecoilUnitCenterGraphLocation = RecoilCoordsToGraphCoords(RecoilUnit.Location);
-		const FVector2D RecoilUnitCenterPanelLocation = BackgroundWidget->GraphCoordToPanelCoord(RecoilUnitCenterGraphLocation);
+		const FVector2f RecoilUnitCenterGraphLocation = RecoilCoordsToGraphCoords(RecoilUnit.Location);
+		const FVector2f RecoilUnitCenterPanelLocation = BackgroundWidget->GraphCoordToPanelCoord(RecoilUnitCenterGraphLocation);
 		if(SelectionRect.ContainsPoint(RecoilUnitCenterPanelLocation))
 		{
 			UnitSelection.AddSelection(RecoilUnit.ID);

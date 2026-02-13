@@ -3,12 +3,12 @@
 
 #include "CRRecoilUnitGraph.h"
 
-FCRRecoilUnit UCRRecoilUnitGraph::CreateNewUnit(const FVector2d& RecoilUnitLocation)
+FCRRecoilUnit UCRRecoilUnitGraph::CreateNewUnit(const FVector2f& RecoilUnitLocation)
 {
 	return FCRRecoilUnit(NextID++, RecoilUnitLocation);
 }
 
-int32 UCRRecoilUnitGraph::AddUnit(const FVector2d& RecoilUnitLocation)
+int32 UCRRecoilUnitGraph::AddUnit(const FVector2f& RecoilUnitLocation)
 {
 	RecoilUnits.Add(FCRRecoilUnit(NextID++, RecoilUnitLocation));
 	OnUnitAdded.Broadcast(NextID - 1);
@@ -32,7 +32,7 @@ void UCRRecoilUnitGraph::Empty()
 	RecoilUnits.Empty();
 }
 
-FVector2D UCRRecoilUnitGraph::GetUnitLocationAt(int32 Index)
+FVector2f UCRRecoilUnitGraph::GetUnitLocationAt(int32 Index)
 {
 	return GetUnitAt(Index).Location;
 }
@@ -113,3 +113,36 @@ void UCRRecoilUnitGraph::RearrangeUnits()
 	}
 
 }
+
+#if WITH_EDITOR
+void UCRRecoilUnitGraph::PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent)
+{
+	Super::PostEditChangeProperty(PropertyChangedEvent);
+
+	if (PropertyChangedEvent.Property)
+	{
+		const FName PropertyName = PropertyChangedEvent.Property->GetFName();
+		if (PropertyName == GET_MEMBER_NAME_CHECKED(UCRRecoilUnitGraph, RecoilUnits))
+		{
+			// Fix duplicate or invalid IDs
+			for (FCRRecoilUnit& Unit : RecoilUnits)
+			{
+				// If ID is 0 or duplicate, assign a new unique ID
+				if (Unit.ID == 0 || GetUnitByID(Unit.ID) != &Unit)
+				{
+					Unit.ID = NextID++;
+				}
+			}
+
+			// Ensure NextID is higher than all existing IDs
+			for (const FCRRecoilUnit& Unit : RecoilUnits)
+			{
+				if (Unit.ID >= NextID)
+				{
+					NextID = Unit.ID + 1;
+				}
+			}
+		}
+	}
+}
+#endif

@@ -45,7 +45,7 @@ public:
 	// Clamp the InShotIndex to the valid range
 	// e.g. use 1 to get the recoil increment from the shot 0 to shot 1
 	// this function auto clamps the shotIndex refer to RecoilBehaviorOnShotLimitReached
-	FVector2D GetDeltaRecoilLocation(OUT int& InShotIndex);
+	FVector2f GetDeltaRecoilLocation(OUT int& InShotIndex) const;
 
 #if WITH_EDITOR
 	virtual EDataValidationResult IsDataValid(FDataValidationContext& Context)const override;
@@ -53,7 +53,7 @@ public:
 	
 	int32 GetMaxShotIndex() const;
 
-	FVector2D GetDeltaRecoilLocationInternal(int32 InShotIndex);
+	FVector2f GetDeltaRecoilLocationInternal(int32 InShotIndex) const;
 
 	UPROPERTY()
 	UCRRecoilUnitGraph* RecoilUnitGraph;

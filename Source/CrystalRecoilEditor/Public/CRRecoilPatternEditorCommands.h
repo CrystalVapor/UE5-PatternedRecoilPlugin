@@ -25,4 +25,5 @@ public:
 	TSharedPtr<FUICommandInfo> ResetViewToOrigin;
 	TSharedPtr<FUICommandInfo> UnitScaling;
 	TSharedPtr<FUICommandInfo> AutoRearrangeUnits;
+	TSharedPtr<FUICommandInfo> ToggleShortcutsVisibility;
 };

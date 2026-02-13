@@ -60,6 +60,12 @@ void FCRRecoilPatternEditorCommands::RegisterCommands()
 		"Auto Rearrange Units",
 		EUserInterfaceActionType::ToggleButton,
 		FInputChord(EKeys::R, false, false, false, false));
+
+	UI_COMMAND(ToggleShortcutsVisibility,
+		"Toggle Shortcuts",
+		"Show/Hide keyboard shortcuts",
+		EUserInterfaceActionType::ToggleButton,
+		FInputChord(EKeys::H, false, false, false, false));
 }
 
 #undef LOCTEXT_NAMESPACE

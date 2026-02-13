@@ -53,14 +53,14 @@ void FCRUnitGraphScaleUnitsDelayedDrag::ApplyScaling(const FCRRecoilUnitSelectio
 	TArray<FCRRecoilUnit*> SelectedRecoilUnitPtrs = RecoilUnitSelection.GetSelectedRecoilUnits(CachedUnitGraph);
 	for(int i = 1; i < SelectedRecoilUnitPtrs.Num(); ++i)
 	{
-		FVector2d VectorFromInitialToUnit = SelectedRecoilUnitPtrs[i]->Location - InitialRecoilLocation;
+		FVector2f VectorFromInitialToUnit = SelectedRecoilUnitPtrs[i]->Location - InitialRecoilLocation;
 		VectorFromInitialToUnit *= ScaleFactor;
 		SelectedRecoilUnitPtrs[i]->Location = InitialRecoilLocation + VectorFromInitialToUnit;
 	}
 	CurrentScale = NewScale;
 }
 
-void FCRUnitGraphMoveUnitsDelayedDrag::ApplyMovement(FCRRecoilUnitSelection& UnitSelection, FVector2d Movement)
+void FCRUnitGraphMoveUnitsDelayedDrag::ApplyMovement(FCRRecoilUnitSelection& UnitSelection, FVector2f Movement)
 {
 	TArray<FCRRecoilUnit*> SelectedRecoilUnitPtrs = UnitSelection.GetSelectedRecoilUnits(CachedUnitGraph);
 	for(int i = 0; i < SelectedRecoilUnitPtrs.Num(); ++i)

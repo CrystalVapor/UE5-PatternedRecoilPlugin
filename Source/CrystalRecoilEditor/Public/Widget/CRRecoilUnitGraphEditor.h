@@ -5,6 +5,7 @@
 #include "CoreMinimal.h"
 #include "CRRecoilUnitGraph.h"
 #include "CRRecoilUnitGraphWidgetDragOperations.h"
+#include "Misc/StringOutputDevice.h"
 #include "Widgets/SCompoundWidget.h"
 
 #include "CRRecoilUnitGraphEditor.generated.h"
@@ -25,10 +26,10 @@ namespace CrystalRecoilEditor
 		GridCoordinateLayer,
 	};
 
-	const FVector2d UnitDrawSize = FVector2d(30.f, 30.f);
-	const FVector2d UnitNumberDrawOffset = FVector2d(12.f, -12.f);
-	const FVector2d UnitNumberDrawSize = FVector2d(24.f, 24.f);
-	const FVector2d OriginDrawSize = FVector2d(16.f, 16.f);
+	const FVector2f UnitDrawSize = FVector2f(30.f, 30.f);
+	const FVector2f UnitNumberDrawOffset = FVector2f(12.f, -12.f);
+	const FVector2f UnitNumberDrawSize = FVector2f(24.f, 24.f);
+	const FVector2f OriginDrawSize = FVector2f(16.f, 16.f);
 }
 
 class SCRRecoilUnitGraphBackgroundWidget;
@@ -45,7 +46,7 @@ struct FCRRecoilUnitClipboardData
 		return errors.IsEmpty();
 	}
 	UPROPERTY()
-	TArray<FVector2D> RecoilUnitLocations;
+	TArray<FVector2f> RecoilUnitLocations;
 };
 
 /**
@@ -89,7 +90,7 @@ public:
 	void DrawSelectionBox(FSlateWindowElementList& OutDrawElements, const FGeometry& AllottedGeometry, int32 BaseLayerID) const;
 
 	void AddUnitUnderCursor();
-	void AddUnit(FVector2d RecoilLocation);
+	void AddUnit(FVector2f RecoilLocation);
 	void SetViewPointToGraphOrigin();
 	void RearrangeUnits();
 	void CopySelectedUnits();
@@ -103,10 +104,10 @@ protected:
 	UCRRecoilPattern* GetRecoilPattern() const;
 	FCRRecoilUnitSelection& GetRecoilUnitSelection() const;
 
-	FVector2D RecoilCoordsToGraphCoords(FVector2D RecoilCoords) const;
-	FVector2D GraphCoordsToRecoilCoords(FVector2D GraphCoords) const;
+	FVector2f RecoilCoordsToGraphCoords(FVector2f RecoilCoords) const;
+	FVector2f GraphCoordsToRecoilCoords(FVector2f GraphCoords) const;
 	
-	int32 FindUnitByScreenLocation(const FVector2D& ScreenLocation, const FGeometry& MyGeometry) const;
+	int32 FindUnitByScreenLocation(const FVector2f& ScreenLocation, const FGeometry& MyGeometry) const;
 
 	void SelectUnitsInPanelCoordsRect(FSlateRect& SelectionRect);
 
@@ -118,6 +119,7 @@ protected:
 	FCRRecoilPatternEditor* RecoilPatternEditor = nullptr;
 
 	TSharedPtr<SCRRecoilUnitGraphBackgroundWidget> BackgroundWidget;
+	TSharedPtr<SVerticalBox> ShortcutsContainer;
 
 	TOptional<FCRUnitGraphViewDelayedDrag> ViewDrag;
 	TOptional<FCRUnitGraphSelectionDelayedDrag> SelectionDrag;
@@ -125,5 +127,5 @@ protected:
 	TOptional<FCRUnitGraphScaleUnitsDelayedDrag> ScaleUnitsDrag;
 
 	int32 LastLeftMouseDownFoundUnitID = INDEX_NONE;
-	FVector2d CurrentMousePanelPosition;
+	FVector2f CurrentMousePanelPosition;
 };

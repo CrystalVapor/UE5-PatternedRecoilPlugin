@@ -13,8 +13,8 @@ class UCRRecoilUnitGraph;
 class FCRUnitGraphViewDelayedDrag: public FDelayedDrag
 {
 public:
-	FCRUnitGraphViewDelayedDrag(const FVector2d InInitialPosition, const FKey& InEffectiveKey)
-	 : FDelayedDrag(InInitialPosition, InEffectiveKey)
+	FCRUnitGraphViewDelayedDrag(const FVector2f InInitialPosition, const FKey& InEffectiveKey)
+	 : FDelayedDrag(static_cast<FVector2D>(InInitialPosition), InEffectiveKey)
 	{
 	}
 };
@@ -22,16 +22,16 @@ public:
 class FCRUnitGraphSelectionDelayedDrag: public FDelayedDrag
 {
 public:
-	FCRUnitGraphSelectionDelayedDrag(const FVector2d InInitialPosition, const FKey& InEffectiveKey)
-	 : FDelayedDrag(InInitialPosition, InEffectiveKey)
+	FCRUnitGraphSelectionDelayedDrag(const FVector2f InInitialPosition, const FKey& InEffectiveKey)
+	 : FDelayedDrag(static_cast<FVector2D>(InInitialPosition), InEffectiveKey)
 	{
 		TriggerDistance = 0.f;
 	}
 
 	FSlateRect GetSelectionRect() const
 	{
-		const FVector2d LocalInitialPosition = GetInitialPosition();
-		const FVector2d LocalEndPosition = EndPosition;
+		const FVector2D LocalInitialPosition = GetInitialPosition();
+		const FVector2f LocalEndPosition = EndPosition;
 		return FSlateRect(
 				FMath::Min(LocalInitialPosition.X, LocalEndPosition.X),
 				FMath::Min(LocalInitialPosition.Y, LocalEndPosition.Y),
@@ -40,13 +40,13 @@ public:
 			);
 	}
 
-	FVector2d EndPosition = FVector2d::ZeroVector;
+	FVector2f EndPosition = FVector2f::ZeroVector;
 };
 
 class FCRUnitGraphScaleUnitsDelayedDrag
 {
 public:
-	FCRUnitGraphScaleUnitsDelayedDrag(UCRRecoilUnitGraph* UnitGraph, FCRRecoilUnitSelection& UnitSelection, const FVector2d InInitialRecoilLocation ,const FVector2d InInitialPosition, const FKey& InEffectiveKey)
+	FCRUnitGraphScaleUnitsDelayedDrag(UCRRecoilUnitGraph* UnitGraph, FCRRecoilUnitSelection& UnitSelection, const FVector2f InInitialRecoilLocation ,const FVector2f InInitialPosition, const FKey& InEffectiveKey)
 	{
 		CachedUnitGraph = UnitGraph;
 		CachedRecoilUnits = CacheSelectedUnits(UnitGraph, UnitSelection);
@@ -75,17 +75,17 @@ public:
 	
 	float CurrentScale = 1.f;
 	float NormalVectorSizePanel = 1.f;
-	FVector2d EndPosition = FVector2d::ZeroVector;
-	FVector2d InitialRecoilLocation = FVector2d::ZeroVector;
-	FVector2d InitialPanelLocation = FVector2d::ZeroVector;
+	FVector2f EndPosition = FVector2f::ZeroVector;
+	FVector2f InitialRecoilLocation = FVector2f::ZeroVector;
+	FVector2f InitialPanelLocation = FVector2f::ZeroVector;
 	int32 BaseUnitID = 0;
 };
 
 class FCRUnitGraphMoveUnitsDelayedDrag: public FDelayedDrag
 {
 public:
-	FCRUnitGraphMoveUnitsDelayedDrag(UCRRecoilUnitGraph* UnitGraph, FCRRecoilUnitSelection& UnitSelection,const FVector2d InInitialRecoilLocation ,const FVector2d InInitialPosition, const FKey& InEffectiveKey)
-	 : FDelayedDrag(InInitialPosition, InEffectiveKey)
+	FCRUnitGraphMoveUnitsDelayedDrag(UCRRecoilUnitGraph* UnitGraph, FCRRecoilUnitSelection& UnitSelection, const FVector2f InInitialRecoilLocation, const FVector2f InInitialPosition, const FKey& InEffectiveKey)
+	 : FDelayedDrag(static_cast<FVector2D>(InInitialPosition), InEffectiveKey)
 	{
 		TriggerDistance = 0.f;
 		CachedUnitGraph = UnitGraph;
@@ -103,7 +103,7 @@ public:
 		CachedUnitGraph->Modify();
 		ApplyCacheToUnitGraph(CachedUnitGraph, MovedRecoilUnits);
 	}
-	void ApplyMovement(FCRRecoilUnitSelection& UnitSelection, FVector2d Movement);
+	void ApplyMovement(FCRRecoilUnitSelection& UnitSelection, FVector2f Movement);
 	
 	
 	TArray<FCRRecoilUnit> CacheSelectedUnits(UCRRecoilUnitGraph* UnitGraph, FCRRecoilUnitSelection& UnitSelection);
@@ -113,6 +113,6 @@ public:
 	TArray<FCRRecoilUnit> CachedRecoilUnits;
 	UCRRecoilUnitGraph* CachedUnitGraph;
 	
-	FVector2D LastRecoilCoordsLocation = FVector2D::ZeroVector;
+	FVector2f LastRecoilCoordsLocation = FVector2f::ZeroVector;
 	FVector2D CachedPannerVector = FVector2d::ZeroVector;
 };

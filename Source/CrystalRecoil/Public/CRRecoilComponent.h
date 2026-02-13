@@ -37,7 +37,7 @@ public:
 	float GetRecoilStrength(float InRecoilStrength);
 
 protected:
-	static FRotator VectorToRotator(const FVector2D InputVector);
+	static FRotator VectorToRotator(const FVector2f InputVector);
 
 	AController* GetTargetController() const;
 
@@ -46,8 +46,7 @@ protected:
 
 	void TryApplyRecoilCompensation(const FRotator& LastFrameInput);
 
-	virtual void ApplyInputToController(AController* TargetController, const FRotator& Input) const;
-
+	virtual void ApplyInputToController(AController* TargetController, const FRotator& Input);
 
 	UPROPERTY()
 	UCRRecoilPattern* RecoilPattern = nullptr;
@@ -67,5 +66,5 @@ protected:
 	float LastFireTime = 0.f;
 	
 private:
-	void InternalApplyInputToController(AController* TargetController, const FRotator& Input) const;
+	static void InternalApplyInputToController(AController* TargetController, const FRotator& Input);
 };

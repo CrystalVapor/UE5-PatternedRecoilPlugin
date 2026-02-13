@@ -9,6 +9,7 @@
 UCRRecoilComponent::UCRRecoilComponent()
 {
 	PrimaryComponentTick.bCanEverTick = true;
+	PrimaryComponentTick.TickGroup = TG_PrePhysics;
 }
 
 
@@ -80,7 +81,7 @@ void UCRRecoilComponent::StartNewRecoilSequence()
 
 void UCRRecoilComponent::ApplyShot()
 {
-	const FVector2D DeltaRecoilLocation = RecoilStrength * RecoilPattern->GetDeltaRecoilLocation(CurrentShotIndex);
+	const FVector2f DeltaRecoilLocation = RecoilStrength * RecoilPattern->GetDeltaRecoilLocation(CurrentShotIndex);
 	CurrentShotIndex++;
 	const float DeltaRecoilLength = DeltaRecoilLocation.Size();
 	const float RecoilShiftAcceleration = RecoilPattern->RecoilShiftAcceleration;
@@ -102,9 +103,9 @@ float UCRRecoilComponent::GetRecoilStrength(float InRecoilStrength)
 	return RecoilStrength;
 }
 
-FRotator UCRRecoilComponent::VectorToRotator(const FVector2D InputVector)
+FRotator UCRRecoilComponent::VectorToRotator(const FVector2f InputVector)
 {
-	return FRotator(-InputVector.Y, InputVector.X, 0);
+	return FRotator(-InputVector.Y, InputVector.X, 0.f);
 }
 
 
@@ -143,18 +144,25 @@ void UCRRecoilComponent::TryApplyRecoilCompensation(const FRotator& LastFrameInp
 	RecoilToRecover.Yaw = CompensatedYaw;
 }
 
-void UCRRecoilComponent::ApplyInputToController(AController* TargetController, const FRotator& Input) const
+void UCRRecoilComponent::ApplyInputToController(AController* TargetController, const FRotator& Input)
 {
 	InternalApplyInputToController(TargetController, Input);
 }
 
-void UCRRecoilComponent::InternalApplyInputToController(AController* TargetController, const FRotator& Input) const
+void UCRRecoilComponent::InternalApplyInputToController(AController* TargetController, const FRotator& Input)
 {
-	if(TargetController&&TargetController->IsLocalPlayerController())
+	if (TargetController && TargetController->IsLocalPlayerController())
 	{
-		APlayerController* PC = Cast<APlayerController>(TargetController);
-		PC->AddYawInput(Input.Yaw);
-		PC->AddPitchInput(Input.Pitch);
+		// AddYawInput is dependent on sensitivity/input scaling
+		// We want absolute recoil regardless of settings, so we directly set the control rotation instead of using AddYawInput/AddPitchInput
+		FRotator CurrentRotation = TargetController->GetControlRotation();
+
+		// Add the recoil delta
+		CurrentRotation.Pitch -= Input.Pitch;
+		CurrentRotation.Yaw += Input.Yaw;
+
+		// Normalize to keep values clean (-180 to 180)
+		CurrentRotation.Normalize();
+		TargetController->SetControlRotation(CurrentRotation);
 	}
 }
-

@@ -19,39 +19,49 @@ USTRUCT()
 struct FCRRecoilUnit
 {
 	GENERATED_BODY();
-public:
-	FCRRecoilUnit():ID(0),Location(FVector2d(0,0)){}
-	FCRRecoilUnit(int32 InID, const FVector2d& InLocation):ID(InID),Location(InLocation){}
+
+	FCRRecoilUnit()
+		: ID(0)
+		, Location(FVector2f::ZeroVector)
+	{
+	}
+
+	FCRRecoilUnit(const int32 InID, const FVector2f& InLocation)
+		: ID(InID)
+		, Location(InLocation)
+	{
+	}
+
 	bool operator==(const FCRRecoilUnit& Other) const
 	{
 		return ID == Other.ID;
 	}
+
 	bool operator>(const FCRRecoilUnit& Other) const
 	{
-		return Location.Y-Other.Location.Y > 0;
+		return Location.Y - Other.Location.Y > 0.f;
 	}
+
 	UPROPERTY(VisibleAnywhere)
 	uint32 ID;
+
 	UPROPERTY(EditAnywhere)
-	FVector2D Location;
+	FVector2f Location;
 };
 
 DECLARE_MULTICAST_DELEGATE_OneParam(FCRRecoilUnitChangedDelegate, int32 /*Index*/)
 
-/**
- * 
- */
 UCLASS()
 class CRYSTALRECOIL_API UCRRecoilUnitGraph : public UObject
 {
 	GENERATED_BODY()
 public:
-	FCRRecoilUnit CreateNewUnit(const FVector2d& RecoilUnitLocation);
-	int32 AddUnit(const FVector2d& RecoilUnitLocation);
+	FCRRecoilUnit CreateNewUnit(const FVector2f& RecoilUnitLocation);
+	int32 AddUnit(const FVector2f& RecoilUnitLocation);
 	void InsertUnit(FCRRecoilUnit& RecoilUnit, int32 Index);
 	void RemoveAt(int32 Index);
 	void Empty();
-	FVector2D GetUnitLocationAt(int32 Index);
+	FVector2f GetUnitLocationAt(int32 Index);
 	FCRRecoilUnit& GetUnitAt(int32 Index);
 	const FCRRecoilUnit& GetUnitAt(int32 Index) const;
 	int32 GetUnitCount() const;
@@ -76,6 +86,11 @@ public:
 	bool bDrawUnitLines = true;
 	UPROPERTY(EditAnywhere, NonTransactional)
 	ECRRecoilUnitGraphRearrangePolicy RearrangePolicy = ECRRecoilUnitGraphRearrangePolicy::AscendByY;
+
+	#if WITH_EDITOR
+	virtual void PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent) override;
+	#endif
+
 protected:
 	UPROPERTY(EditAnywhere)
 	TArray<FCRRecoilUnit> RecoilUnits;

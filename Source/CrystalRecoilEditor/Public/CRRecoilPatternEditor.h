@@ -78,6 +78,7 @@ public:
 	void Command_SwitchAutoRearrangeUnits();
 	void Command_SwitchUnitScaling();
 	void Command_ResetViewToOrigin();
+	void Command_ToggleShortcutsVisibility();
 
 	TSharedRef<SWidget> GetMenuContent_UnitsSnapping();
 
@@ -86,10 +87,12 @@ public:
 
 	void OnEditUnitFromDetailsPanel(const FPropertyChangedEvent& PropertyChangedEvent);
 
+	bool bShowShortcuts = true;
 	bool bEnableUnitScaling = false;
 	bool bEnableAutoRearrangeUnits = true;
 	bool bEnableGridSnapping = false;
 	float GridSnappingValue = 0.1f;
+
 protected:
 	void OnSelectionChanged();
 	

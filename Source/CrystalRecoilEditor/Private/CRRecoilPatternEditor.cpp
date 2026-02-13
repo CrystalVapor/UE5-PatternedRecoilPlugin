@@ -218,6 +218,13 @@ void FCRRecoilPatternEditor::MapCommands()
 	EditorCommands->MapAction(
 		Commands.ResetViewToOrigin,
 		FExecuteAction::CreateRaw(this, &FCRRecoilPatternEditor::Command_ResetViewToOrigin));
+
+	EditorCommands->MapAction(
+		Commands.ToggleShortcutsVisibility,
+		FExecuteAction::CreateRaw(this, &FCRRecoilPatternEditor::Command_ToggleShortcutsVisibility),
+		FCanExecuteAction::CreateLambda([]() { return true; }),
+		FIsActionChecked::CreateLambda([&]() { return bShowShortcuts; })
+	);
 }
 
 void FCRRecoilPatternEditor::ExtendToolBar()
@@ -478,6 +485,11 @@ void FCRRecoilPatternEditor::Command_SwitchUnitScaling()
 void FCRRecoilPatternEditor::Command_ResetViewToOrigin()
 {
 	UnitGraphWidget->SetViewPointToGraphOrigin();
+}
+
+void FCRRecoilPatternEditor::Command_ToggleShortcutsVisibility()
+{
+	bShowShortcuts = !bShowShortcuts;
 }
 
 TSharedRef<SWidget> FCRRecoilPatternEditor::GetMenuContent_UnitsSnapping()
