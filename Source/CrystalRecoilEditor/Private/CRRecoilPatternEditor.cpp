@@ -227,7 +227,7 @@ void FCRRecoilPatternEditor::ExtendToolBar()
 			TAttribute<FText>(),
 			TAttribute<FText>(),
 			FSlateIcon("EditorStyle", "ViewportToolbar.TransformScale"));
-		Builder.AddSeparator();
+
 		Builder.AddToolBarButton(
 			Commands.UnitsSnapping,
 			"RecoilPatternToolBarExtHook",
@@ -241,14 +241,14 @@ void FCRRecoilPatternEditor::ExtendToolBar()
 			Commands.UnitsSnapping->GetDescription(),
 			FSlateIcon(),
 			true);
-		Builder.AddSeparator();
+
 		Builder.AddToolBarButton(
 			Commands.AutoRearrangeUnits,
 			"RecoilPatternToolBarExtHook",
 			TAttribute<FText>(),
 			TAttribute<FText>(),
 			FSlateIcon("EditorStyle", "GenericCurveEditor.StraightenTangents"));
-		Builder.AddSeparator();
+
 		Builder.AddToolBarButton(
 			Commands.ZoomViewToFit,
 			"RecoilPatternToolBarExtHook",
