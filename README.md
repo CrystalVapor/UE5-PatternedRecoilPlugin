@@ -2,19 +2,19 @@
 
 ## Introduction
 
-This plugin is inspired by RecoilSystem which was written by a Russian Programmer, and is **a complete rewrite** of the original plugin.
+CrystalRecoil is an Unreal Engine plugin that provides a pattern-based recoil system for shooter games.
+Define per-weapon recoil patterns visually using the built-in Recoil Pattern Editor,
+then drive them at runtime through a Blueprint and C++ API.
 
-Crystal's Recoil allows you to add templated recoil effects to your shooting game, and you can use a GUI interface to adjust the recoil template and other detailed parameters.
-
-![Editor Screenshot](Resources/Screenshot.png)
+![Editor Screenshot](Resources/Screenshot_After.png)
 
 ## Features
 
-- Patterned Recoil
-- Full GUI Interface
-- Easy-to-use Code Interface
-- Blueprints Fully Accessible
-- Support Recoil Recovery/Compensation (Not Finished)
+- Pattern-Based Recoil System
+- Custom Recoil Pattern Editor
+- Blueprint Exposed API
+- Recoil Recovery and Compensation
+- Spread Recoil Component
 
 ## Installation
 
@@ -24,35 +24,41 @@ Crystal's Recoil allows you to add templated recoil effects to your shooting gam
 
 ## Usage
 
-1. Add the component `UCRRecoilComponent` to an Actor (Player Pawn, FireArm or other Actor)
-2. Implement the interface `ICRRecoilInterface` for the Actor that has the `CRRecoilComponent`
-3. Override the function `ICRRecoilInterface::GetRecoilComponent` to return the corresponding recoil component
-4. Override the function `ICRRecoilInterface::GetTargetController` to return the player controller that needs to apply the recoil
-5. Create an asset `CRRecoilPattern` and set a suitable recoil behavior in the editor
-6. Call `UCRRecoilComponent::SetRecoilPattern` to set the recoil pattern for the recoil component at the appropriate time
-7. Call `ICRRecoilInterface::StartShooting` at the beginning of each burst (Usually every LMB pressed), and call `ICRRecoilInterface::ApplyShot` after each shot
+1. Add `CRRecoilComponent` to your Actor (Pawn, Weapon, etc.)
+2. Implement `ICRRecoilInterface` on the same Actor, overriding:
+   - `GetRecoilComponent` return the `CRRecoilComponent`
+   - `GetTargetController` return the `APlayerController` to apply recoil to
+3. Create a `UCRRecoilPattern` Data Asset and configure it in the editor
+4. Call `UCRRecoilComponent::SetRecoilPattern` to assign the pattern at runtime
+5. On fire start: call `ICRRecoilInterface::StartShooting`
+6. On each shot: call `ICRRecoilInterface::ApplyShot`
+7. On fire end: call `ICRRecoilInterface::EndShooting`
 
-## Recoil Pattern Editor Shortcuts
+## Recoil Pattern Behavior
 
-- **N**: Add Unit
-- **Del**: Remove
-- **Ctrl+A**: Select All
-- **Ctrl+C/V**: Copy/Paste
-- **Shift+S**: Snap
-- **S**: Scale
-- **R**: Arrange
-- **O**: Reset View
-- **H**: Toggle Shortcuts
+When the player shoots beyond the defined pattern length, `ERecoilBehaviorOnShotLimitReached` controls what happens:
+
+- **RepeatLast** - Repeats the last shot's delta indefinitely (AK-47 style infinite climb)
+- **Stop** - Recoil stops, gun stabilizes at the last position (laser rifles, low-recoil weapons)
+- **RestartFromCustomIndex** - Loops back to a specific shot index. Use `0` to restart the full pattern, or a higher index to loop only the sustained fire phase
+- **Random** - Switches to procedural random recoil defined by `RandomizedRecoil` min/max ranges (LMGs, chaotic spray)
 
 ## Recoil Implementation Details
 
-The way the plugin simulates recoil is:
+First, the delta rotation is calculated from the recoil pattern coordinates.
 
-First, determine the vector distance the reticle needs to move based on the coordinates in the template
+Then, using kinematic equations *(v₀ = 2d/T, a = 2d/T²)*, an initial speed and deceleration are derived that guarantee the camera travels exactly that distance in exactly the configured uplift duration.
 
-Then calculate the initial velocity of the reticle required using the reticle rise time and braking acceleration written in the recoil template
+The deceleration is applied each tick until the full recoil is consumed, after which recovery returns the camera to its pre-shot position.
 
-Then convert the initial velocity to angular momentum and apply it, gradually applying the braking acceleration until the reticle reaches the predetermined position
+## Recoil Pattern Editor Shortcuts
+
+- **Shift+Click**: Add Unit
+- **Shift+S**: Toggle Snapping
+- **S**: Scale
+- **R**: Auto Rearrange
+- **F**: Zoom View to Fit
+- **H**: Toggle Shortcuts
 
 ## Additional Information
 
