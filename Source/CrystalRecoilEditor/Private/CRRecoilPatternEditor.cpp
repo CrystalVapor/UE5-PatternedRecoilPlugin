@@ -228,12 +228,16 @@ void FCRRecoilPatternEditor::ExtendToolBar()
 			TAttribute<FText>(),
 			FSlateIcon("EditorStyle", "ViewportToolbar.TransformScale"));
 
+		Builder.AddWidget(SNew(SSpacer).Size(FVector2D(8.f, 0.f)));
+
+		Builder.BeginBlockGroup();
 		Builder.AddToolBarButton(
 			Commands.UnitsSnapping,
 			"RecoilPatternToolBarExtHook",
 			TAttribute<FText>(),
 			TAttribute<FText>(),
 			FSlateIcon("EditorStyle", "GenericCurveEditor.ToggleInputSnapping"));
+
 		Builder.AddComboButton(
 			FUIAction(),
 			FOnGetContent::CreateSP(this, &FCRRecoilPatternEditor::GetMenuContent_UnitsSnapping),
@@ -241,6 +245,9 @@ void FCRRecoilPatternEditor::ExtendToolBar()
 			Commands.UnitsSnapping->GetDescription(),
 			FSlateIcon(),
 			true);
+		Builder.EndBlockGroup();
+
+		Builder.AddWidget(SNew(SSpacer).Size(FVector2D(8.f, 0.f)));
 
 		Builder.AddToolBarButton(
 			Commands.AutoRearrangeUnits,
@@ -248,6 +255,8 @@ void FCRRecoilPatternEditor::ExtendToolBar()
 			TAttribute<FText>(),
 			TAttribute<FText>(),
 			FSlateIcon("EditorStyle", "GenericCurveEditor.StraightenTangents"));
+
+		Builder.AddWidget(SNew(SSpacer).Size(FVector2D(4.f, 0.f)));
 
 		Builder.AddToolBarButton(
 			Commands.ZoomViewToFit,
