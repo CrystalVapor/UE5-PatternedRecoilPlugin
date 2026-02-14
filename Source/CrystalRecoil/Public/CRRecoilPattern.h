@@ -9,7 +9,7 @@
 class UCRRecoilUnitGraph;
 
 UENUM()
-enum class ERecoilBehaviorOnShotLimitReached : uint8
+enum class ERecoilPatternEndBehavior : uint8
 {
 	// Continues applying the last shot's recoil delta (Infinite climb)
 	RepeatLast,
@@ -44,12 +44,12 @@ class CRYSTALRECOIL_API UCRRecoilPattern : public UDataAsset
 public:
 	UCRRecoilPattern();
 
-	UCRRecoilUnitGraph* GetUnitGraph() const { return RecoilUnitGraph; }
+	UCRRecoilUnitGraph* GetUnitGraph() const;
 
 	// Returns the incremental recoil to be applied compared to the previous shot
 	// Clamp the InShotIndex to the valid range
 	// e.g. use 1 to get the recoil increment from the shot 0 to shot 1
-	// this function auto clamps the shotIndex refer to RecoilBehaviorOnShotLimitReached
+	// this function auto clamps the shotIndex refer to PatternEndBehavior
 	FVector2f GetDeltaRecoilLocation(int32& InShotIndex) const;
 
 	int32 GetMaxShotIndex() const;
@@ -57,32 +57,7 @@ public:
 	FVector2f GetDeltaRecoilLocationInternal(const int32 InShotIndex) const;
 
 	UPROPERTY()
-	UCRRecoilUnitGraph* RecoilUnitGraph;
-
-	/**
-	* Defines behavior when the player shoots beyond the defined pattern length
-	* RepeatLast: Good for high-recoil weapons (AK-47 style infinite climb)
-	* Stop: Good for low recoil weapons that stabilize (Laser beams)
-	* Random: Good for heavy weapons (LMGs) with chaotic spray at the end
-	*/
-	UPROPERTY(EditAnywhere, Category = "Behavior")
-	ERecoilBehaviorOnShotLimitReached RecoilBehaviorOnShotLimitReached = ERecoilBehaviorOnShotLimitReached::RepeatLast;
-
-	/**
-	* The shot index to loop back to when the pattern ends
-	* 0: Loops the entire pattern from the start
-	* High Value: Loops only the later part of the pattern (The "Sustained Fire" phase)
-	*/
-	UPROPERTY(EditAnywhere, Meta = (EditCondition = "RecoilBehaviorOnShotLimitReached == ERecoilBehaviorOnShotLimitReached::RestartFromCustomIndex", EditConditionHides = true), Category = "Behavior")
-	int32 CustomRecoilRestartIndex = 0;
-
-	/**
-	* Configuration for procedural random recoil
-	* Defines the min/max X and Y kick applied after the pattern finishes
-	* Used to create unpredictable noise for sustained fire
-	*/
-	UPROPERTY(EditAnywhere, Meta = (EditCondition = "RecoilBehaviorOnShotLimitReached == ERecoilBehaviorOnShotLimitReached::Random", EditConditionHides = true), Category = "Behavior")
-	FRecoilPatternRandomizedRecoil RandomizedRecoil;
+	UCRRecoilUnitGraph* RecoilUnitGraph = nullptr;
 
 	/**
 	* Controls how fast the recoil kick reaches its peak.
@@ -119,4 +94,29 @@ public:
 	*/
 	UPROPERTY(EditAnywhere, Meta = (ClampMin = 0.01f), Category = "Recovery")
 	float RecoveryAcceleration = 40.f;
+
+	/**
+	* Defines behavior when the player shoots beyond the defined pattern length
+	* RepeatLast: Good for high-recoil weapons (AK-47 style infinite climb)
+	* Stop: Good for low recoil weapons that stabilize (Laser beams)
+	* Random: Good for heavy weapons (LMGs) with chaotic spray at the end
+	*/
+	UPROPERTY(EditAnywhere, Category = "Pattern")
+	ERecoilPatternEndBehavior PatternEndBehavior = ERecoilPatternEndBehavior::RepeatLast;
+
+	/**
+	* The shot index to loop back to when the pattern ends
+	* 0: Loops the entire pattern from the start
+	* High Value: Loops only the later part of the pattern (The "Sustained Fire" phase)
+	*/
+	UPROPERTY(EditAnywhere, Meta = (EditCondition = "PatternEndBehavior == ERecoilPatternEndBehavior::RestartFromCustomIndex", EditConditionHides = true), Category = "Pattern")
+	int32 CustomRecoilRestartIndex = 0;
+
+	/**
+	* Configuration for procedural random recoil
+	* Defines the min/max X and Y kick applied after the pattern finishes
+	* Used to create unpredictable noise for sustained fire
+	*/
+	UPROPERTY(EditAnywhere, Meta = (EditCondition = "PatternEndBehavior == ERecoilPatternEndBehavior::Random", EditConditionHides = true), Category = "Pattern")
+	FRecoilPatternRandomizedRecoil RandomizedRecoil;
 };

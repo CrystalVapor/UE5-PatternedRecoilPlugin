@@ -8,6 +8,11 @@ UCRRecoilPattern::UCRRecoilPattern()
 	RecoilUnitGraph = NewObject<UCRRecoilUnitGraph>(this, "RecoilUnitGraph", RF_Transactional | RF_Public);
 }
 
+UCRRecoilUnitGraph* UCRRecoilPattern::GetUnitGraph() const
+{
+	return RecoilUnitGraph;
+}
+
 FVector2f UCRRecoilPattern::GetDeltaRecoilLocation(int32 & InShotIndex) const
 {
 	if (RecoilUnitGraph->GetUnitCount() == 0)
@@ -17,18 +22,18 @@ FVector2f UCRRecoilPattern::GetDeltaRecoilLocation(int32 & InShotIndex) const
 
 	if (InShotIndex>=GetMaxShotIndex())
 	{
-		switch (RecoilBehaviorOnShotLimitReached)
+		switch (PatternEndBehavior)
 		{
-			case ERecoilBehaviorOnShotLimitReached::Stop:
+			case ERecoilPatternEndBehavior::Stop:
 				InShotIndex = GetMaxShotIndex();
 				return FVector2f::ZeroVector;
-			case ERecoilBehaviorOnShotLimitReached::RepeatLast:
+			case ERecoilPatternEndBehavior::RepeatLast:
 				InShotIndex = GetMaxShotIndex();
 				break;
-			case ERecoilBehaviorOnShotLimitReached::RestartFromCustomIndex:
+			case ERecoilPatternEndBehavior::RestartFromCustomIndex:
 				InShotIndex = CustomRecoilRestartIndex;
 				break;
-			case ERecoilBehaviorOnShotLimitReached::Random:
+			case ERecoilPatternEndBehavior::Random:
 				return FVector2f(FMath::RandRange(RandomizedRecoil.RandomXRange.X, RandomizedRecoil.RandomXRange.Y), FMath::RandRange(RandomizedRecoil.RandomYRange.X, RandomizedRecoil.RandomYRange.Y)) * 0.5f;
 		}
 	}
