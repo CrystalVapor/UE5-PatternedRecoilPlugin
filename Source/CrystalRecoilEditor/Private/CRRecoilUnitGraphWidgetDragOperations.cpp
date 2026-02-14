@@ -1,18 +1,14 @@
 ﻿// Copyright CrystalVapor 2024, All rights reserved.
 
-
 #include "CRRecoilUnitGraphWidgetDragOperations.h"
 
-
-TArray<FCRRecoilUnit> FCRUnitGraphScaleUnitsDelayedDrag::CacheSelectedUnits(UCRRecoilUnitGraph* UnitGraph,
-	FCRRecoilUnitSelection& UnitSelection)
+TArray<FCRRecoilUnit> FCRUnitGraphScaleUnitsDelayedDrag::CacheSelectedUnits(UCRRecoilUnitGraph* UnitGraph, FCRRecoilUnitSelection& UnitSelection)
 {
 	TArray<FCRRecoilUnit*> SelectedRecoilUnitPtrs = UnitSelection.GetSelectedRecoilUnits(UnitGraph);
 	TArray<FCRRecoilUnit> Ret;
-	for(int i = 0; i < SelectedRecoilUnitPtrs.Num(); ++i)
+	for (int32 Index = 0; Index < SelectedRecoilUnitPtrs.Num(); ++Index)
 	{
-		FCRRecoilUnit* RecoilUnit = SelectedRecoilUnitPtrs[i];
-		if(RecoilUnit)
+		if (const FCRRecoilUnit* RecoilUnit = SelectedRecoilUnitPtrs[Index])
 		{
 			Ret.Add(*RecoilUnit);
 		}
@@ -22,65 +18,60 @@ TArray<FCRRecoilUnit> FCRUnitGraphScaleUnitsDelayedDrag::CacheSelectedUnits(UCRR
 
 TArray<FCRRecoilUnit> FCRUnitGraphScaleUnitsDelayedDrag::CacheAllUnits(UCRRecoilUnitGraph* UnitGraph)
 {
-	int32 RecoilUnitCount = UnitGraph->GetUnitCount();
+	const int32 RecoilUnitCount = UnitGraph->GetUnitCount();
 	TArray<FCRRecoilUnit> Ret;
-	for(int i = 0;i<RecoilUnitCount;++i)
+	for (int32 Index = 0; Index < RecoilUnitCount; ++Index)
 	{
-		Ret.Add(UnitGraph->GetUnitAt(i));
+		Ret.Add(UnitGraph->GetUnitAt(Index));
 	}
 	return Ret;
 }
 
-void FCRUnitGraphScaleUnitsDelayedDrag::ApplyCacheToUnitGraph(UCRRecoilUnitGraph* UnitGraph,
-	const TArray<FCRRecoilUnit>& InCachedRecoilUnits)
+void FCRUnitGraphScaleUnitsDelayedDrag::ApplyCacheToUnitGraph(UCRRecoilUnitGraph* UnitGraph, const TArray<FCRRecoilUnit>& InCachedRecoilUnits)
 {
-	for(int i = 0; i < InCachedRecoilUnits.Num(); ++i)
+	for (int32 Index = 0; Index < InCachedRecoilUnits.Num(); ++Index)
 	{
-		FCRRecoilUnit RecoilUnit = InCachedRecoilUnits[i];
-		FCRRecoilUnit* UnitPtr = UnitGraph->GetUnitByID(RecoilUnit.ID);
-		if(UnitPtr)
+		const FCRRecoilUnit RecoilUnit = InCachedRecoilUnits[Index];
+		if (FCRRecoilUnit* UnitPtr = UnitGraph->GetUnitByID(RecoilUnit.ID))
 		{
-			UnitPtr->Location = RecoilUnit.Location;
+			UnitPtr->Position = RecoilUnit.Position;
 		}
 	}
 }
 
-void FCRUnitGraphScaleUnitsDelayedDrag::ApplyScaling(const FCRRecoilUnitSelection& RecoilUnitSelection,
-	float NewScale)
+void FCRUnitGraphScaleUnitsDelayedDrag::ApplyScaling(const FCRRecoilUnitSelection& RecoilUnitSelection, float NewScale)
 {
 	NewScale = FMath::Max(0.05f, NewScale);
-	float ScaleFactor = NewScale / CurrentScale;
+	const float ScaleFactor = NewScale / CurrentScale;
 	TArray<FCRRecoilUnit*> SelectedRecoilUnitPtrs = RecoilUnitSelection.GetSelectedRecoilUnits(CachedUnitGraph);
-	for(int i = 1; i < SelectedRecoilUnitPtrs.Num(); ++i)
+	for (int32 Index = 1; Index < SelectedRecoilUnitPtrs.Num(); ++Index)
 	{
-		FVector2f VectorFromInitialToUnit = SelectedRecoilUnitPtrs[i]->Location - InitialRecoilLocation;
+		FVector2f VectorFromInitialToUnit = SelectedRecoilUnitPtrs[Index]->Position - InitialRecoilLocation;
 		VectorFromInitialToUnit *= ScaleFactor;
-		SelectedRecoilUnitPtrs[i]->Location = InitialRecoilLocation + VectorFromInitialToUnit;
+		SelectedRecoilUnitPtrs[Index]->Position = InitialRecoilLocation + VectorFromInitialToUnit;
 	}
 	CurrentScale = NewScale;
 }
 
-void FCRUnitGraphMoveUnitsDelayedDrag::ApplyMovement(FCRRecoilUnitSelection& UnitSelection, FVector2f Movement)
+void FCRUnitGraphMoveUnitsDelayedDrag::ApplyMovement(const FCRRecoilUnitSelection& UnitSelection, const FVector2f& Movement) const
 {
 	TArray<FCRRecoilUnit*> SelectedRecoilUnitPtrs = UnitSelection.GetSelectedRecoilUnits(CachedUnitGraph);
-	for(int i = 0; i < SelectedRecoilUnitPtrs.Num(); ++i)
+	for (int32 Index = 0; Index < SelectedRecoilUnitPtrs.Num(); ++Index)
 	{
-		FCRRecoilUnit* RecoilUnit = SelectedRecoilUnitPtrs[i];
-		if(RecoilUnit)
+		if (FCRRecoilUnit* RecoilUnit = SelectedRecoilUnitPtrs[Index])
 		{
-			RecoilUnit->Location += Movement;
+			RecoilUnit->Position += Movement;
 		}
 	}
 }
 
-TArray<FCRRecoilUnit> FCRUnitGraphMoveUnitsDelayedDrag::CacheSelectedUnits(UCRRecoilUnitGraph* UnitGraph, FCRRecoilUnitSelection& UnitSelection)
+TArray<FCRRecoilUnit> FCRUnitGraphMoveUnitsDelayedDrag::CacheSelectedUnits(UCRRecoilUnitGraph* UnitGraph, const FCRRecoilUnitSelection& UnitSelection)
 {
 	TArray<FCRRecoilUnit*> SelectedRecoilUnitPtrs = UnitSelection.GetSelectedRecoilUnits(UnitGraph);
 	TArray<FCRRecoilUnit> Ret;
-	for(int i = 0; i < SelectedRecoilUnitPtrs.Num(); ++i)
+	for (int32 Index = 0; Index < SelectedRecoilUnitPtrs.Num(); ++Index)
 	{
-		FCRRecoilUnit* RecoilUnit = SelectedRecoilUnitPtrs[i];
-		if(RecoilUnit)
+		if (const FCRRecoilUnit* RecoilUnit = SelectedRecoilUnitPtrs[Index])
 		{
 			Ret.Add(*RecoilUnit);
 		}
@@ -90,25 +81,23 @@ TArray<FCRRecoilUnit> FCRUnitGraphMoveUnitsDelayedDrag::CacheSelectedUnits(UCRRe
 
 TArray<FCRRecoilUnit> FCRUnitGraphMoveUnitsDelayedDrag::CacheAllUnits(UCRRecoilUnitGraph* UnitGraph)
 {
-	int32 RecoilUnitCount = UnitGraph->GetUnitCount();
+	const int32 RecoilUnitCount = UnitGraph->GetUnitCount();
 	TArray<FCRRecoilUnit> Ret;
-	for(int i = 0;i<RecoilUnitCount;++i)
+	for (int32 Index = 0; Index < RecoilUnitCount; ++Index)
 	{
-		Ret.Add(UnitGraph->GetUnitAt(i));
+		Ret.Add(UnitGraph->GetUnitAt(Index));
 	}
 	return Ret;
 }
 
-void FCRUnitGraphMoveUnitsDelayedDrag::ApplyCacheToUnitGraph(UCRRecoilUnitGraph* UnitGraph,
-	const TArray<FCRRecoilUnit>& InCachedRecoilUnits)
+void FCRUnitGraphMoveUnitsDelayedDrag::ApplyCacheToUnitGraph(UCRRecoilUnitGraph* UnitGraph, const TArray<FCRRecoilUnit>& InCachedRecoilUnits)
 {
-	for(int i = 0; i < InCachedRecoilUnits.Num(); ++i)
+	for (int32 Index = 0; Index < InCachedRecoilUnits.Num(); ++Index)
 	{
-		FCRRecoilUnit RecoilUnit = InCachedRecoilUnits[i];
-		FCRRecoilUnit* UnitPtr = UnitGraph->GetUnitByID(RecoilUnit.ID);
-		if(UnitPtr)
+		const FCRRecoilUnit& RecoilUnit = InCachedRecoilUnits[Index];
+		if (FCRRecoilUnit* UnitPtr = UnitGraph->GetUnitByID(RecoilUnit.ID))
 		{
-			UnitPtr->Location = RecoilUnit.Location;
+			UnitPtr->Position = RecoilUnit.Position;
 		}
 	}
 }

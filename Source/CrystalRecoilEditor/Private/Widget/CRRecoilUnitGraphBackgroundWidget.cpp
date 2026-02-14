@@ -1,8 +1,6 @@
 ﻿// Copyright CrystalVapor 2024, All rights reserved.
 
-
 #include "Widget/CRRecoilUnitGraphBackgroundWidget.h"
-
 
 FCRRecoilUnitGraphBackgroundWidgetZoomLevelsContainer::FCRRecoilUnitGraphBackgroundWidgetZoomLevelsContainer()
 {
@@ -68,21 +66,15 @@ EGraphRenderingLOD::Type FCRRecoilUnitGraphBackgroundWidgetZoomLevelsContainer::
 void SCRRecoilUnitGraphBackgroundWidget::Construct(const FArguments& InArgs)
 {
 	// Use our custom zoom levels container
- 	ZoomLevels = MakeUnique<FCRRecoilUnitGraphBackgroundWidgetZoomLevelsContainer>();
+	ZoomLevels = MakeUnique<FCRRecoilUnitGraphBackgroundWidgetZoomLevelsContainer>();
 	SNodePanel::Construct();
 }
 
-int32 SCRRecoilUnitGraphBackgroundWidget::OnPaint(const FPaintArgs& Args, const FGeometry& AllottedGeometry,
-	const FSlateRect& MyCullingRect, FSlateWindowElementList& OutDrawElements, int32 LayerId,
-	const FWidgetStyle& InWidgetStyle, bool bParentEnabled) const
+int32 SCRRecoilUnitGraphBackgroundWidget::OnPaint(const FPaintArgs& Args, const FGeometry& AllottedGeometry, const FSlateRect& MyCullingRect, FSlateWindowElementList& OutDrawElements, int32 LayerId, const FWidgetStyle& InWidgetStyle, bool bParentEnabled) const
 {
-	int ResultLayer = SNodePanel::OnPaint(Args, AllottedGeometry, MyCullingRect, OutDrawElements, LayerId, InWidgetStyle,
-	                           bParentEnabled);
-
+	int32 ResultLayer = SNodePanel::OnPaint(Args, AllottedGeometry, MyCullingRect, OutDrawElements, LayerId, InWidgetStyle, bParentEnabled);
 	const FSlateBrush* BackgroundBrush = FAppStyle::GetBrush(TEXT("Graph.Panel.SolidBackground"));
-	
 	PaintBackgroundAsLines(BackgroundBrush, AllottedGeometry, MyCullingRect, OutDrawElements, ResultLayer);
-	
 	return ResultLayer;
 }
 
@@ -93,10 +85,10 @@ FVector2D SCRRecoilUnitGraphBackgroundWidget::GetZoomedAndCenterBasedViewOffset(
 
 int32 SCRRecoilUnitGraphBackgroundWidget::GetGridAxisStep() const
 {
-	return FMath::CeilToInt(2/GetZoomAmount());
+	return FMath::CeilToInt(GetZoomAmount() * 0.5f);
 }
 
-void SCRRecoilUnitGraphBackgroundWidget::SetViewOffset(FVector2D Value)
+void SCRRecoilUnitGraphBackgroundWidget::SetViewOffset(const FVector2D& Value)
 {
 	ViewOffset = Value;
 }

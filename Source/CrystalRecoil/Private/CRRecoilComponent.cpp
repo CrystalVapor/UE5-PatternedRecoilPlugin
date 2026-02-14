@@ -1,10 +1,8 @@
 ﻿// Copyright CrystalVapor 2024, All rights reserved.
 
-
 #include "CRRecoilComponent.h"
 #include "CRRecoilInterface.h"
 #include "CRRecoilPattern.h"
-
 
 UCRRecoilComponent::UCRRecoilComponent()
 {
@@ -12,61 +10,78 @@ UCRRecoilComponent::UCRRecoilComponent()
 	PrimaryComponentTick.TickGroup = TG_PrePhysics;
 }
 
-
-void UCRRecoilComponent::BeginPlay()
-{
-	Super::BeginPlay();
-}
-
-void UCRRecoilComponent::TickComponent(float DeltaTime, ELevelTick TickType,
-                                       FActorComponentTickFunction* ThisTickFunction)
+void UCRRecoilComponent::TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction)
 {
 	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
-	if(!RecoilPattern)
+
+	AController* TargetController = GetTargetController();
+
+	if (!RecoilPattern || !TargetController)
 	{
 		return;
 	}
-	if(!GetTargetController())
-	{
-		return;
-	}
+
 	FRotator DeltaRecoilRotation = FRotator::ZeroRotator;
 	FRotator DeltaRecoveryRotation = FRotator::ZeroRotator;
-	const FRotator CurrentRotation = GetTargetController()->GetControlRotation();
-	
-	const FRotator InputLastFrame = CurrentRotation - CachedControllerRotation - RecoilInputGeneratedLastFrame;
-	
-	CachedControllerRotation = GetTargetController()->GetControlRotation();
+	const FRotator CurrentRotation = TargetController->GetControlRotation();
 
-	if(!FMath::IsNearlyZero(CurrentRecoilSpeed))
+	const FRotator RotationDelta = (CurrentRotation - CachedControllerRotation).GetNormalized();
+	FRotator InputLastFrame = RotationDelta - RecoilInputGeneratedLastFrame;
+	InputLastFrame.Normalize();
+
+	CachedControllerRotation = TargetController->GetControlRotation();
+
+	// Apply recoil uplift
+	if (!RecoilToApply.IsNearlyZero())
 	{
-		CurrentRecoilSpeed = FMath::FInterpConstantTo(CurrentRecoilSpeed, 0, DeltaTime, RecoilPattern->RecoilShiftAcceleration);
-		DeltaRecoilRotation = FMath::RInterpConstantTo(FRotator::ZeroRotator, RecoilToApply, DeltaTime, CurrentRecoilSpeed);
-		if(ProcessDeltaRecoilRotation(DeltaRecoilRotation))
+		CurrentRecoilSpeed = FMath::Max(0.f, CurrentRecoilSpeed - CurrentUpliftDeceleration * DeltaTime);
+
+		const float DeltaMove = CurrentRecoilSpeed * DeltaTime;
+		const float RemainingMagnitude = FMath::Sqrt(RecoilToApply.Pitch * RecoilToApply.Pitch + RecoilToApply.Yaw * RecoilToApply.Yaw);
+
+		if (DeltaMove >= RemainingMagnitude || FMath::IsNearlyZero(CurrentRecoilSpeed))
 		{
-			ApplyInputToController(GetTargetController(), DeltaRecoilRotation);
-			RecoilToApply -= DeltaRecoilRotation;
+			DeltaRecoilRotation = RecoilToApply;
 		}
-		RecoilToRecover += DeltaRecoilRotation;
+		else
+		{
+			const float Alpha = DeltaMove / RemainingMagnitude;
+			DeltaRecoilRotation = FRotator(RecoilToApply.Pitch * Alpha, RecoilToApply.Yaw * Alpha, 0.f);
+		}
+
+		if (ProcessDeltaRecoilRotation(DeltaRecoilRotation))
+		{
+			ApplyInputToController(TargetController, DeltaRecoilRotation);
+			RecoilToApply -= DeltaRecoilRotation;
+			RecoilToRecover += DeltaRecoilRotation;
+		}
 	}
 
-	// Unfinished
-	//TryApplyRecoilCompensation(InputLastFrame);
-	//GEngine->AddOnScreenDebugMessage(-1,3.f,FColor::Red,InputLastFrame.ToString());
-		
-	if(LastFireTime + DeltaTime + RecoilPattern->RecoveryDelay<GetWorld()->GetTimeSeconds() && !RecoilToRecover.IsNearlyZero())
+	// Apply recoil recovery - only after uplift is fully complete
+	if (RecoilToApply.IsNearlyZero() && LastFireTime + RecoilPattern->RecoveryDelay < GetWorld()->GetTimeSeconds() && !RecoilToRecover.IsNearlyZero(0.001f))
 	{
-		CurrentRecoverySpeed = FMath::FInterpConstantTo(CurrentRecoverySpeed, RecoilPattern->MaxRecoverySpeed , DeltaTime, RecoilPattern->RecoveryAcceleration);
-		DeltaRecoveryRotation = FMath::RInterpTo( FRotator::ZeroRotator,RecoilToRecover,  DeltaTime, CurrentRecoverySpeed);
+		TryApplyRecoilCompensation(InputLastFrame);
+
+		CurrentRecoverySpeed = FMath::FInterpConstantTo(CurrentRecoverySpeed, RecoilPattern->MaxRecoverySpeed, DeltaTime, RecoilPattern->RecoveryAcceleration);
+		DeltaRecoveryRotation = FMath::RInterpTo(FRotator::ZeroRotator, RecoilToRecover, DeltaTime, CurrentRecoverySpeed);
 		DeltaRecoveryRotation = FRotator(-DeltaRecoveryRotation.Pitch, -DeltaRecoveryRotation.Yaw, 0.f);
-		if(ProcessDeltaRecoveryRotation(DeltaRecoveryRotation))
+
+		if (ProcessDeltaRecoveryRotation(DeltaRecoveryRotation))
 		{
-			ApplyInputToController(GetTargetController(), DeltaRecoveryRotation);
+			ApplyInputToController(TargetController, DeltaRecoveryRotation);
 			RecoilToRecover += DeltaRecoveryRotation;
 		}
+
+		// Flush tiny remainders to prevent infinite recovery ticks
+		if (RecoilToRecover.IsNearlyZero(0.001f))
+		{
+			RecoilToRecover = FRotator::ZeroRotator;
+		}
 	}
-	
-	RecoilInputGeneratedLastFrame = DeltaRecoilRotation + DeltaRecoveryRotation;
+
+	// Negate pitch because ApplyInputToController does Pitch -= Input.Pitch (inverted), but Yaw is additive (Yaw += Input.Yaw), so it keeps its sign.
+	// Without this, the sign mismatch causes InputLastFrame to see double the recoil as phantom player input, which incorrectly triggers compensation
+	RecoilInputGeneratedLastFrame = FRotator(-DeltaRecoilRotation.Pitch - DeltaRecoveryRotation.Pitch, DeltaRecoilRotation.Yaw + DeltaRecoveryRotation.Yaw, 0.f);
 }
 
 void UCRRecoilComponent::SetRecoilPattern(UCRRecoilPattern* InRecoilPattern)
@@ -81,24 +96,41 @@ void UCRRecoilComponent::StartNewRecoilSequence()
 
 void UCRRecoilComponent::ApplyShot()
 {
+	if (!RecoilPattern)
+	{
+		return;
+	}
+
 	const FVector2f DeltaRecoilLocation = RecoilStrength * RecoilPattern->GetDeltaRecoilLocation(CurrentShotIndex);
-	CurrentShotIndex++;
 	const float DeltaRecoilLength = DeltaRecoilLocation.Size();
-	const float RecoilShiftAcceleration = RecoilPattern->RecoilShiftAcceleration;
-	const float RecoilUpliftDuration = RecoilPattern->RecoilUpliftDuration;
-	CurrentRecoilSpeed = DeltaRecoilLength / RecoilUpliftDuration + RecoilShiftAcceleration * RecoilUpliftDuration / 2;
+
+	// Map UpliftSpeed (0-1) to duration: high sharpness = short = snappy
+	// Lerp in speed space (1/T) instead of time space so sharpness feels linear
+	// At 0.0: 1/2 = 0.5s (floaty)
+	// At 0.75: ~20ms (fast)
+	// At 1.0: 1/66 = 0.015s (instant)
+	constexpr float MinRate = 1.f / 0.5f;
+	constexpr float MaxRate = 1.f / 0.025f;
+	const float UpliftDuration = 1.f / FMath::Lerp(MinRate, MaxRate, RecoilPattern->UpliftSpeed);
+
+	// Kinematics: v0 = 2d/T, a = 2d/T^2
+	// Guarantees camera travels exactly DeltaRecoilLength in exactly UpliftDuration
+	CurrentUpliftDeceleration = (2.f * DeltaRecoilLength) / (UpliftDuration * UpliftDuration);
+	CurrentRecoilSpeed = 2.f * DeltaRecoilLength / UpliftDuration;
+
 	RecoilToApply = VectorToRotator(DeltaRecoilLocation);
 	RecoilToRecover = FRotator::ZeroRotator;
-	CurrentRecoverySpeed = 0.1f;
+	CurrentRecoverySpeed = RecoilPattern->InitialRecoverySpeed;
 	LastFireTime = GetWorld()->GetTimeSeconds();
+	++CurrentShotIndex;
 }
 
-void UCRRecoilComponent::SetRecoilStrength(float InRecoilStrength)
+void UCRRecoilComponent::SetRecoilStrength(const float InRecoilStrength)
 {
 	RecoilStrength = FMath::Max(0.05f, InRecoilStrength);
 }
 
-float UCRRecoilComponent::GetRecoilStrength(float InRecoilStrength)
+float UCRRecoilComponent::GetRecoilStrength() const
 {
 	return RecoilStrength;
 }
@@ -108,11 +140,13 @@ FRotator UCRRecoilComponent::VectorToRotator(const FVector2f InputVector)
 	return FRotator(-InputVector.Y, InputVector.X, 0.f);
 }
 
-
 AController* UCRRecoilComponent::GetTargetController() const
 {
-	UObject* Owner = GetOwner();
-	check(Owner&& Owner->Implements<UCRRecoilInterface>())
+	const UObject* Owner = GetOwner();
+	if (!ensureMsgf(Owner && Owner->Implements<UCRRecoilInterface>(), TEXT("Owner must implement ICRRecoilInterface")))
+	{
+		return nullptr;
+	}
 	return ICRRecoilInterface::Execute_K2_GetTargetController(Owner);
 }
 
@@ -132,37 +166,62 @@ bool UCRRecoilComponent::ProcessDeltaRecoveryRotation(FRotator& DeltaRecoveryRot
 
 void UCRRecoilComponent::TryApplyRecoilCompensation(const FRotator& LastFrameInput)
 {
-	auto CompensateAxis = [](const float RecoveryAxis, const float InputAxis)->float
+	// Only compensate if Player is actively giving input (threshold to avoid noise)
+	constexpr float InputThreshold = 0.01f;
+
+	// Compensate Pitch (vertical)
+	if (FMath::Abs(LastFrameInput.Pitch) > InputThreshold)
 	{
-		const float Sum = RecoveryAxis + InputAxis;
-		return FMath::Sign(RecoveryAxis) == FMath::Sign(InputAxis) ? RecoveryAxis :
-					FMath::Sign(Sum) == FMath::Sign(RecoveryAxis) ? Sum : 0.f;
-	};
-	const float CompensatedPitch = CompensateAxis(RecoilToRecover.Pitch, LastFrameInput.Pitch);
-	const float CompensatedYaw = CompensateAxis(RecoilToRecover.Yaw, LastFrameInput.Yaw);
-	RecoilToRecover.Pitch = CompensatedPitch;
-	RecoilToRecover.Yaw = CompensatedYaw;
+		// Player is pulling down (negative pitch) while we need to recover down (positive RecoilToRecover.Pitch)
+		if (FMath::Sign(LastFrameInput.Pitch) != FMath::Sign(RecoilToRecover.Pitch))
+		{
+			// Reduce recovery by Player input amount, but don't go past zero
+			const float NewRecovery = RecoilToRecover.Pitch + LastFrameInput.Pitch;
+			if (FMath::Sign(NewRecovery) == FMath::Sign(RecoilToRecover.Pitch))
+			{
+				RecoilToRecover.Pitch = NewRecovery;
+			}
+			else
+			{
+				RecoilToRecover.Pitch = 0.f;
+			}
+		}
+	}
+
+	// Compensate Yaw (horizontal)
+	if (FMath::Abs(LastFrameInput.Yaw) > InputThreshold)
+	{
+		if (FMath::Sign(LastFrameInput.Yaw) != FMath::Sign(RecoilToRecover.Yaw))
+		{
+			const float NewRecovery = RecoilToRecover.Yaw + LastFrameInput.Yaw;
+			if (FMath::Sign(NewRecovery) == FMath::Sign(RecoilToRecover.Yaw))
+			{
+				RecoilToRecover.Yaw = NewRecovery;
+			}
+			else
+			{
+				RecoilToRecover.Yaw = 0.f;
+			}
+		}
+	}
 }
 
 void UCRRecoilComponent::ApplyInputToController(AController* TargetController, const FRotator& Input)
 {
-	InternalApplyInputToController(TargetController, Input);
-}
-
-void UCRRecoilComponent::InternalApplyInputToController(AController* TargetController, const FRotator& Input)
-{
 	if (TargetController && TargetController->IsLocalPlayerController())
 	{
-		// AddYawInput is dependent on sensitivity/input scaling
-		// We want absolute recoil regardless of settings, so we directly set the control rotation instead of using AddYawInput/AddPitchInput
 		FRotator CurrentRotation = TargetController->GetControlRotation();
 
-		// Add the recoil delta
+		// Apply the recoil delta
 		CurrentRotation.Pitch -= Input.Pitch;
 		CurrentRotation.Yaw += Input.Yaw;
 
-		// Normalize to keep values clean (-180 to 180)
+		// Clamp pitch before normalizing to prevent gimbal lock
+		CurrentRotation.Pitch = FMath::ClampAngle(CurrentRotation.Pitch, -89.9f, 89.9f);
+
+		// Normalize yaw to keep it in -180 to 180 range
 		CurrentRotation.Normalize();
+
 		TargetController->SetControlRotation(CurrentRotation);
 	}
 }

@@ -8,11 +8,14 @@ class FCRAssetTypeActions_RecoilPattern;
 class FCrystalRecoilEditorModule : public IModuleInterface
 {
 public:
-    virtual void StartupModule() override;
-    virtual void ShutdownModule() override;
+	virtual void StartupModule() override;
 
-    void RegisterAssetActions();
-    void UnregisterAssetActions();
+	virtual void ShutdownModule() override;
+
+	void RegisterAssetActions();
+
+	void UnregisterAssetActions() const;
+
 protected:
-    TSharedPtr<FCRAssetTypeActions_RecoilPattern> RecoilPatternAssetAction;
+	TSharedPtr<FCRAssetTypeActions_RecoilPattern> RecoilPatternAssetAction;
 };

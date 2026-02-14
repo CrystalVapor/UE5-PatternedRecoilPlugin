@@ -1,11 +1,8 @@
 ﻿// Copyright CrystalVapor 2024, All rights reserved.
 
-
 #include "CRRecoilPatternFactory.h"
-
 #include "CRRecoilPattern.h"
 #include "CRRecoilUnitGraph.h"
-
 
 UCRRecoilPatternFactory::UCRRecoilPatternFactory()
 {
@@ -14,8 +11,7 @@ UCRRecoilPatternFactory::UCRRecoilPatternFactory()
 	SupportedClass = UCRRecoilPattern::StaticClass();
 }
 
-UObject* UCRRecoilPatternFactory::FactoryCreateNew(UClass* InClass, UObject* InParent, FName InName, EObjectFlags Flags,
-	UObject* Context, FFeedbackContext* Warn, FName CallingContext)
+UObject* UCRRecoilPatternFactory::FactoryCreateNew(UClass* InClass, UObject* InParent, FName InName, EObjectFlags Flags, UObject* Context, FFeedbackContext* Warn, FName CallingContext)
 {
 	const auto RecoilPattern = NewObject<UCRRecoilPattern>(InParent, InClass, InName, Flags);
 	const auto UnitGraph = RecoilPattern->GetUnitGraph();

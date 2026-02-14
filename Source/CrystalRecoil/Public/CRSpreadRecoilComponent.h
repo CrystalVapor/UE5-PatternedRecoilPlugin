@@ -17,16 +17,16 @@ public:
 
 	virtual void ApplyShot() override;
 
-	void AddRecoilHeat(float InHeat);
+	void AddRecoilHeat(const float InHeat);
 
-	void SetRecoilHeat(float InHeat);
+	void SetRecoilHeat(const float InHeat);
 
 	UFUNCTION(BlueprintCallable, BlueprintPure)
 	float GetRecoilHeat() const;
 
-	void SetMaxRecoilHeat(float InMaxHeat);
+	void SetMaxRecoilHeat(const float InMaxHeat);
 
-	void SetRecoilHeatCoolDownDelay(float InDelay);
+	void SetRecoilHeatCoolDownDelay(const float InDelay);
 
 	void SetShotToHeatCurve(const FRichCurve* InCurve);
 
@@ -39,20 +39,22 @@ public:
 	FCRSpreadRecoilHeatChangedDelegate OnHeatChanged;
 	
 protected:
-	void DoHeatCooldown(float DeltaTime);
+	void DoHeatCooldown(const float DeltaTime);
 	
 	bool ReadyToCalculateRecoil() const;
 	
-	virtual void TickComponent(float DeltaTime, ELevelTick TickType,
-	                           FActorComponentTickFunction* ThisTickFunction) override;
+	virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
 
-	float MaxRecoilHeat = 100.f;
-	float RecoilHeatCooldownDelay = 0.5f;
-	
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite)
 	float CurrentRecoilHeat = 0.f;
-	
+
+	float MaxRecoilHeat = 100.f;
+
+	float RecoilHeatCooldownDelay = 0.5f;
+
 	const FRichCurve* ShotToHeatCurve = nullptr;
+
 	const FRichCurve* HeatToSpreadAngleCurve = nullptr;
+
 	const FRichCurve* HeatToCooldownPerSecondCurve = nullptr;
 };
