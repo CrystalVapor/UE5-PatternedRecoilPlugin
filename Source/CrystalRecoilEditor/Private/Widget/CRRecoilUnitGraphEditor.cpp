@@ -5,7 +5,7 @@
 #include "CRRecoilPatternEditor.h"
 #include "Fonts/FontMeasure.h"
 #include "Widget/CRRecoilUnitGraphBackgroundWidget.h"
-#include "Windows/WindowsPlatformApplicationMisc.h"
+#include "HAL/PlatformApplicationMisc.h"
 
 void SCRRecoilUnitGraphWidget::Construct(const FArguments& InArgs)
 {
@@ -27,7 +27,7 @@ void SCRRecoilUnitGraphWidget::Construct(const FArguments& InArgs)
             .VAlign(VAlign_Center)
             [
                 SNew(SBorder)
-                .BorderImage(new FSlateRoundedBoxBrush(FLinearColor(1.f, 1.f, 1.f, 0.07f), 4.0f))
+                .BorderImage(new FSlateRoundedBoxBrush(FLinearColor(1.f, 1.f, 1.f, 0.07f), 4.f))
                 .Padding(FMargin(4.f, 2.f))
                 .HAlign(HAlign_Center)
                 [
@@ -70,7 +70,7 @@ void SCRRecoilUnitGraphWidget::Construct(const FArguments& InArgs)
             .VAlign(VAlign_Fill)
             [
                 SNew(SBorder)
-                .BorderImage(new FSlateRoundedBoxBrush(FLinearColor(0.025f, 0.025f, 0.025f, 0.85f), 6.0f))
+                .BorderImage(new FSlateRoundedBoxBrush(FLinearColor(0.025f, 0.025f, 0.025f, 0.85f), 6.f))
                 .Visibility_Lambda([this]()
                 {
                     return RecoilPatternEditor->bShowShortcuts ? EVisibility::Visible : EVisibility::Collapsed;
@@ -166,125 +166,69 @@ void SCRRecoilUnitGraphWidget::ZoomToFitAllUnits() const
 	UCRRecoilUnitGraph* CurrentRecoilUnitGraph = GetUnitGraph();
 	if (!CurrentRecoilUnitGraph || CurrentRecoilUnitGraph->GetUnitCount() == 0)
 	{
-		// No units, just center on origin
 		BackgroundWidget->SetViewOffset(BackgroundWidget->GetTickSpaceGeometry().GetLocalSize() * -0.5f / BackgroundWidget->GetZoomAmount());
 		return;
 	}
 
-	// Find bounds of all units in recoil space
-	FVector2f MinBounds = FVector2f(FLT_MAX, FLT_MAX);
-	FVector2f MaxBounds = FVector2f(-FLT_MAX, -FLT_MAX);
+	// Find bounds of all units in recoil space, always including origin (0,0)
+	FVector2f MinBounds = FVector2f::ZeroVector;
+	FVector2f MaxBounds = FVector2f::ZeroVector;
 
-	for (int32 i = 0; i < CurrentRecoilUnitGraph->GetUnitCount(); ++i)
+	for (int32 Index = 0; Index < CurrentRecoilUnitGraph->GetUnitCount(); ++Index)
 	{
-		const FCRRecoilUnit& Unit = CurrentRecoilUnitGraph->GetUnitAt(i);
+		const FCRRecoilUnit& Unit = CurrentRecoilUnitGraph->GetUnitAt(Index);
 		MinBounds.X = FMath::Min(MinBounds.X, Unit.Position.X);
 		MinBounds.Y = FMath::Min(MinBounds.Y, Unit.Position.Y);
 		MaxBounds.X = FMath::Max(MaxBounds.X, Unit.Position.X);
 		MaxBounds.Y = FMath::Max(MaxBounds.Y, Unit.Position.Y);
 	}
 
-	// Convert to graph coordinates first
+	// Convert to graph space and resolve min/max since Y is flipped
 	const FVector2f MinGraphCandidate = RecoilCoordsToGraphCoords(MinBounds);
 	const FVector2f MaxGraphCandidate = RecoilCoordsToGraphCoords(MaxBounds);
+	const FVector2f MinGraph = FVector2f(FMath::Min(MinGraphCandidate.X, MaxGraphCandidate.X), FMath::Min(MinGraphCandidate.Y, MaxGraphCandidate.Y));
+	const FVector2f MaxGraph = FVector2f(FMath::Max(MinGraphCandidate.X, MaxGraphCandidate.X), FMath::Max(MinGraphCandidate.Y, MaxGraphCandidate.Y));
 
-	// Since Y is flipped, find actual min/max in graph space
-	const FVector2f UnpaddedMinGraph = FVector2f(FMath::Min(MinGraphCandidate.X, MaxGraphCandidate.X), FMath::Min(MinGraphCandidate.Y, MaxGraphCandidate.Y));
-	const FVector2f UnpaddedMaxGraph = FVector2f(FMath::Max(MinGraphCandidate.X, MaxGraphCandidate.X), FMath::Max(MinGraphCandidate.Y, MaxGraphCandidate.Y));
+	// Add padding for visual clearance
+	const FVector2f SizeGraph = MaxGraph - MinGraph;
+	const float UnitDrawSize = CurrentRecoilUnitGraph->UnitDrawSize;
+	const FVector2f Padding = FVector2f(UnitDrawSize * 3.f + SizeGraph.X * 0.04f, UnitDrawSize * 3.f + SizeGraph.Y * 0.04f);
+	const FVector2f PaddedSizeGraph = SizeGraph + Padding * 2.f;
+	const FVector2f CenterGraph = (MinGraph + MaxGraph) * 0.5f;
 
-	// Add padding in graph space for visual clearance around units
-	const FVector2f UnitDrawSize = FVector2f(CurrentRecoilUnitGraph->UnitDrawSize);
-	const FVector2f SizeGraph = UnpaddedMaxGraph - UnpaddedMinGraph;
-	const FVector2f GraphPadding = FVector2f(UnitDrawSize.X * 3.0f + SizeGraph.X * 0.04f, UnitDrawSize.Y * 3.0f + SizeGraph.Y * 0.04f);
-
-	const FVector2f MinGraph = UnpaddedMinGraph - GraphPadding;
-	const FVector2f MaxGraph = UnpaddedMaxGraph + GraphPadding;
-	const FVector2f PaddedSizeGraph = MaxGraph - MinGraph;
-
-	// Use unpadded center so units are visually centered
-	const FVector2f CenterGraph = (UnpaddedMinGraph + UnpaddedMaxGraph) * 0.5f;
-
-	// Get widget size (guaranteed to be valid at this point)
+	// Find closest zoom level to fit all units
 	const FVector2f WidgetSize = BackgroundWidget->GetTickSpaceGeometry().GetLocalSize();
-
-	// Calculate target zoom to fit all units
 	const float TargetZoom = FMath::Min(WidgetSize.X / PaddedSizeGraph.X, WidgetSize.Y / PaddedSizeGraph.Y);
 
-	// Find best zoom level by testing incrementally
-	float BestZoom = BackgroundWidget->GetZoomAmount();
-	float SmallestDifference = FMath::Abs(BestZoom - TargetZoom);
-	int32 BestDirection = 0;
-
-	// Try zooming in
-	int32 ZoomInSteps = 0;
-	for (int32 i = 0; i < 20; ++i)
-	{
-		BackgroundWidget->ChangeZoomLevel(1, FVector2f::ZeroVector, false);
-		ZoomInSteps++;
-		const float TestZoom = BackgroundWidget->GetZoomAmount();
-		const float Difference = FMath::Abs(TestZoom - TargetZoom);
-
-		if (Difference < SmallestDifference)
-		{
-			SmallestDifference = Difference;
-			BestZoom = TestZoom;
-			BestDirection = ZoomInSteps;
-		}
-		else
-		{
-			break;
-		}
-	}
-	BackgroundWidget->ChangeZoomLevel(-ZoomInSteps, FVector2f::ZeroVector, false);
-
-	// Try zooming out
-	int32 ZoomOutSteps = 0;
-	for (int32 i = 0; i < 20; ++i)
+	for (int32 Index = 0; Index < 40; ++Index)
 	{
 		BackgroundWidget->ChangeZoomLevel(-1, FVector2f::ZeroVector, false);
-		ZoomOutSteps++;
-		const float TestZoom = BackgroundWidget->GetZoomAmount();
-		const float Difference = FMath::Abs(TestZoom - TargetZoom);
+	}
 
-		if (Difference < SmallestDifference)
+	float SmallestDifference = FMath::Abs(BackgroundWidget->GetZoomAmount() - TargetZoom);
+	for (int32 Index = 0; Index < 40; ++Index)
+	{
+		BackgroundWidget->ChangeZoomLevel(1, FVector2f::ZeroVector, false);
+		const float Difference = FMath::Abs(BackgroundWidget->GetZoomAmount() - TargetZoom);
+		if (Difference <= SmallestDifference)
 		{
 			SmallestDifference = Difference;
-			BestZoom = TestZoom;
-			BestDirection = -ZoomOutSteps;
 		}
 		else
 		{
+			BackgroundWidget->ChangeZoomLevel(-1, FVector2f::ZeroVector, false);
 			break;
 		}
 	}
-	BackgroundWidget->ChangeZoomLevel(ZoomOutSteps, FVector2f::ZeroVector, false);
 
-	// If best zoom is still larger than target, units won't fit - go one more level out
-	if (BestZoom > TargetZoom)
+	if (BackgroundWidget->GetZoomAmount() > TargetZoom)
 	{
-		BackgroundWidget->ChangeZoomLevel(BestDirection - 1, FVector2f::ZeroVector, false);
-	}
-	else
-	{
-		BackgroundWidget->ChangeZoomLevel(BestDirection, FVector2f::ZeroVector, false);
+		BackgroundWidget->ChangeZoomLevel(-1, FVector2f::ZeroVector, false);
 	}
 
-	// Read actual zoom after applying - ChangeZoomLevel may have modified ViewOffset internally
 	const float ActualZoom = BackgroundWidget->GetZoomAmount();
-
-	// Center view on all units
-	// From GetZoomedAndCenterBasedViewOffset: PanelCoord = (GraphCoord - ViewOffset) * Zoom + ViewportSize/2
-	// Solving for ViewOffset: ViewOffset = (GraphCoord - ViewportSize/2) / Zoom
 	const FVector2f ViewportCenter = WidgetSize * 0.5f;
-	const FVector2D TargetViewOffset = FVector2D((CenterGraph - ViewportCenter) / ActualZoom);
-
-	// Correct Y centering by calculating where units actually end up in panel space
-	const float TopUnitPanelY = (UnpaddedMaxGraph.Y - TargetViewOffset.Y) * ActualZoom + ViewportCenter.Y;
-	const float BottomUnitPanelY = (UnpaddedMinGraph.Y - TargetViewOffset.Y) * ActualZoom + ViewportCenter.Y;
-	const float UnitPanelCenterY = (TopUnitPanelY + BottomUnitPanelY) * 0.5f;
-	const float YCorrection = (UnitPanelCenterY - ViewportCenter.Y) / ActualZoom;
-
-	BackgroundWidget->SetViewOffset(FVector2D(TargetViewOffset.X, TargetViewOffset.Y - YCorrection));
+	BackgroundWidget->SetViewOffset(FVector2D(CenterGraph.X - ViewportCenter.X / ActualZoom, CenterGraph.Y - ViewportCenter.Y / ActualZoom));
 }
 
 void SCRRecoilUnitGraphWidget::RegisterCommands() const

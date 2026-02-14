@@ -6,12 +6,6 @@
 
 void FCRRecoilPatternEditorCommands::RegisterCommands()
 {
-	UI_COMMAND(AddUnitUnderCursor,
-		"Add Unit Under Cursor",
-		"Add a new recoil unit under cursor",
-		EUserInterfaceActionType::Button,
-		FInputChord(EKeys::LeftMouseButton, true, false, false, false));
-
 	UI_COMMAND(RemoveUnit,
 		"Remove Unit",
 		"Remove the selected recoil unit",
