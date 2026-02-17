@@ -45,13 +45,13 @@ When the player shoots beyond the defined pattern length, `ERecoilBehaviorOnShot
 
 ## Recoil Implementation Details
 
-**Uplift:**<br>
+**Uplift**<br>
 Delta rotation is calculated from the recoil pattern coordinates. Using kinematic equations *(v₀ = 2d/T, a = 2d/T²)*, an initial speed and deceleration are derived that guarantee the camera travels exactly that distance in exactly the configured uplift duration. The deceleration is applied each tick until the full recoil is consumed.
 
-**Compensation:**<br>
+**Compensation**<br>
 Player input that opposes accumulated recoil (e.g., pulling down while gun kicks up) reduces the recovery debt in real-time, allowing players to manually control recoil.
 
-**Recovery:**<br>
+**Recovery**<br>
 After `RecoveryDelay`, the camera automatically returns toward the pre-shot position at a configurable speed and acceleration. Recovery can be canceled if the player makes large aiming movements (controlled by `RecoveryCancelThreshold`), allowing natural aim adjustments without fighting the system.
 
 ## Recoil Pattern Editor Shortcuts
