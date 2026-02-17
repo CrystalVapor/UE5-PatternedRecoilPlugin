@@ -15,7 +15,9 @@ struct FCRZoomLevelEntry
 	}
 
 	FText DisplayText;
+
 	float ZoomAmount;
+
 	EGraphRenderingLOD::Type LOD;
 };
 
@@ -24,10 +26,15 @@ struct FCRRecoilUnitGraphBackgroundWidgetZoomLevelsContainer : public FZoomLevel
 	FCRRecoilUnitGraphBackgroundWidgetZoomLevelsContainer();
 
 	virtual float GetZoomAmount(int32 InZoomLevel) const override;
+
 	virtual int32 GetNearestZoomLevel(float ZoomAmount) const override;
+
 	virtual FText GetZoomText(int32 InZoomLevel) const override;
+
 	virtual int32 GetNumZoomLevels() const override;
+
 	virtual int32 GetDefaultZoomLevel() const override;
+
 	virtual EGraphRenderingLOD::Type GetLOD(int32 InZoomLevel) const override;
 
 private:
@@ -46,8 +53,11 @@ public:
 	void Construct(const FArguments& InArgs);
 
 	using SNodePanel::GraphCoordToPanelCoord;
+
 	using SNodePanel::PanelCoordToGraphCoord;
+
 	using SNodePanel::ScrollToLocation;
+
 	using SNodePanel::ChangeZoomLevel;
 
 	virtual int32 OnPaint(const FPaintArgs& Args, const FGeometry& AllottedGeometry, const FSlateRect& MyCullingRect, FSlateWindowElementList& OutDrawElements, int32 LayerId, const FWidgetStyle& InWidgetStyle, bool bParentEnabled) const override;

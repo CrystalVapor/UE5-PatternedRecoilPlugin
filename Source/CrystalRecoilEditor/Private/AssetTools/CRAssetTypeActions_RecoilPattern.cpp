@@ -1,6 +1,6 @@
-﻿#include "CRAssetTypeActions_RecoilPattern.h"
-#include "CRRecoilPattern.h"
-#include "CRRecoilPatternEditor.h"
+﻿#include "AssetTools/CRAssetTypeActions_RecoilPattern.h"
+#include "Data/CRRecoilPattern.h"
+#include "Editor/CRRecoilPatternEditor.h"
 
 FText FCRAssetTypeActions_RecoilPattern::GetName() const
 {

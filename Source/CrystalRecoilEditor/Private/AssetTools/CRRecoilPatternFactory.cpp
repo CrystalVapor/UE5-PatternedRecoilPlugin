@@ -1,8 +1,8 @@
 ﻿// Copyright CrystalVapor 2024, All rights reserved.
 
-#include "CRRecoilPatternFactory.h"
-#include "CRRecoilPattern.h"
-#include "CRRecoilUnitGraph.h"
+#include "AssetTools/CRRecoilPatternFactory.h"
+#include "Data/CRRecoilPattern.h"
+#include "Data/CRRecoilUnitGraph.h"
 
 UCRRecoilPatternFactory::UCRRecoilPatternFactory()
 {

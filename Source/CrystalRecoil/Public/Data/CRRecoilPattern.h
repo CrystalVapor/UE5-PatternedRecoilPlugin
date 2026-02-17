@@ -69,8 +69,9 @@ public:
 
 	/**
 	* Time to wait after the last shot before recovery begins
+	* Set to 0 to disable Recovery completely
 	*/
-	UPROPERTY(EditAnywhere, Meta = (ClampMin = 0.01f, ForceUnits = "s"), Category = "Recovery")
+	UPROPERTY(EditAnywhere, Meta = (ClampMin = 0.f, ForceUnits = "s"), Category = "Recovery")
 	float RecoveryDelay = 0.1f;
 
 	/**
@@ -96,6 +97,14 @@ public:
 	float RecoveryAcceleration = 40.f;
 
 	/**
+	* If accumulated player input exceeds this threshold during the burst, cancel recovery entirely
+	* Measured from StartShooting until recovery would begin (after RecoveryDelay)
+	* Set to 0 to disable (recovery always completes regardless of player aiming)
+	*/
+	UPROPERTY(EditAnywhere, Meta = (ClampMin = 0.f, ClampMax = 90.f, ForceUnits = "deg"), Category = "Recovery")
+	float RecoveryCancelThreshold = 5.f;
+
+	/**
 	* Defines behavior when the player shoots beyond the defined pattern length
 	* RepeatLast: Good for high-recoil weapons (AK-47 style infinite climb)
 	* Stop: Good for low recoil weapons that stabilize (Laser beams)
@@ -109,7 +118,7 @@ public:
 	* 0: Loops the entire pattern from the start
 	* High Value: Loops only the later part of the pattern (The "Sustained Fire" phase)
 	*/
-	UPROPERTY(EditAnywhere, Meta = (EditCondition = "PatternEndBehavior == ERecoilPatternEndBehavior::RestartFromCustomIndex", EditConditionHides = true), Category = "Pattern")
+	UPROPERTY(EditAnywhere, Meta = (EditCondition = "PatternEndBehavior == ERecoilPatternEndBehavior::RestartFromCustomIndex", EditConditionHides = true, ClampMin = 0), Category = "Pattern")
 	int32 CustomRecoilRestartIndex = 0;
 
 	/**

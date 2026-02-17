@@ -54,7 +54,7 @@ int32 FCRRecoilUnitGraphBackgroundWidgetZoomLevelsContainer::GetNumZoomLevels() 
 
 int32 FCRRecoilUnitGraphBackgroundWidgetZoomLevelsContainer::GetDefaultZoomLevel() const
 {
-	return 12;
+	return 13;
 }
 
 EGraphRenderingLOD::Type FCRRecoilUnitGraphBackgroundWidgetZoomLevelsContainer::GetLOD(int32 InZoomLevel) const

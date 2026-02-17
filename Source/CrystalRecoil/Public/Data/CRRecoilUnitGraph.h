@@ -45,11 +45,6 @@ struct FCRRecoilUnit
 		return ID == Other.ID;
 	}
 
-	bool operator>(const FCRRecoilUnit& Other) const
-	{
-		return Position.Y - Other.Position.Y > 0.f;
-	}
-
 	UPROPERTY(VisibleAnywhere, Category = "Unit")
 	uint32 ID;
 

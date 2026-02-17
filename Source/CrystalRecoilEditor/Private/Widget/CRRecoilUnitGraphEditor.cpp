@@ -1,8 +1,8 @@
 ﻿// Copyright CrystalVapor 2024, All rights reserved.
 
 #include "Widget/CRRecoilUnitGraphEditor.h"
-#include "CRRecoilPattern.h"
-#include "CRRecoilPatternEditor.h"
+#include "Data/CRRecoilPattern.h"
+#include "Editor/CRRecoilPatternEditor.h"
 #include "Fonts/FontMeasure.h"
 #include "Widget/CRRecoilUnitGraphBackgroundWidget.h"
 #include "HAL/PlatformApplicationMisc.h"
@@ -12,7 +12,8 @@ void SCRRecoilUnitGraphWidget::Construct(const FArguments& InArgs)
     check(InArgs._RecoilPatternEditor)
     RecoilPatternEditor = InArgs._RecoilPatternEditor;
 
-    RegisterCommands();
+    static const FSlateRoundedBoxBrush KeyBorderBrush(FLinearColor(1.f, 1.f, 1.f, 0.07f), 4.f);
+    static const FSlateRoundedBoxBrush PanelBackgroundBrush(FLinearColor(0.025f, 0.025f, 0.025f, 0.85f), 6.f);
 
     const FSlateFontInfo FontInfo = FCoreStyle::GetDefaultFontStyle("Regular", 9);
     const FSlateFontInfo TitleFontInfo = FCoreStyle::GetDefaultFontStyle("Bold", 9);
@@ -27,7 +28,7 @@ void SCRRecoilUnitGraphWidget::Construct(const FArguments& InArgs)
             .VAlign(VAlign_Center)
             [
                 SNew(SBorder)
-                .BorderImage(new FSlateRoundedBoxBrush(FLinearColor(1.f, 1.f, 1.f, 0.07f), 4.f))
+                .BorderImage(&KeyBorderBrush)
                 .Padding(FMargin(4.f, 2.f))
                 .HAlign(HAlign_Center)
                 [
@@ -70,7 +71,7 @@ void SCRRecoilUnitGraphWidget::Construct(const FArguments& InArgs)
             .VAlign(VAlign_Fill)
             [
                 SNew(SBorder)
-                .BorderImage(new FSlateRoundedBoxBrush(FLinearColor(0.025f, 0.025f, 0.025f, 0.85f), 6.f))
+                .BorderImage(&PanelBackgroundBrush)
                 .Visibility_Lambda([this]()
                 {
                     return RecoilPatternEditor->bShowShortcuts ? EVisibility::Visible : EVisibility::Collapsed;
@@ -153,7 +154,7 @@ void SCRRecoilUnitGraphWidget::Construct(const FArguments& InArgs)
     ];
 }
 
-void SCRRecoilUnitGraphWidget::SetObject(UCRRecoilUnitGraph* InRecoilUnitGraph)
+void SCRRecoilUnitGraphWidget::SetRecoilUnitGraph(UCRRecoilUnitGraph* InRecoilUnitGraph)
 {
 	RecoilUnitGraph = InRecoilUnitGraph;
 
@@ -231,21 +232,8 @@ void SCRRecoilUnitGraphWidget::ZoomToFitAllUnits() const
 	BackgroundWidget->SetViewOffset(FVector2D(CenterGraph.X - ViewportCenter.X / ActualZoom, CenterGraph.Y - ViewportCenter.Y / ActualZoom));
 }
 
-void SCRRecoilUnitGraphWidget::RegisterCommands() const
-{
-	const TSharedPtr<FUICommandList> CommandList = RecoilPatternEditor->GetToolkitCommands();
-}
-
 int32 SCRRecoilUnitGraphWidget::OnPaint(const FPaintArgs& Args, const FGeometry& AllottedGeometry, const FSlateRect& MyCullingRect, FSlateWindowElementList& OutDrawElements, int32 LayerId, const FWidgetStyle& InWidgetStyle, bool bParentEnabled) const
 {
-	if (RecoilPatternEditor && RecoilPatternEditor->bEnableAutoRearrangeUnits)
-	{
-		if (RecoilUnitGraph)
-		{
-			RecoilUnitGraph->RearrangeUnits();
-		}
-	}
-
 	if (bNeedZoomToFit)
 	{
 		// Check if widget geometry is ready
@@ -253,7 +241,7 @@ int32 SCRRecoilUnitGraphWidget::OnPaint(const FPaintArgs& Args, const FGeometry&
 		if (WidgetSize.X > 0 && WidgetSize.Y > 0)
 		{
 			ZoomToFitAllUnits();
-			const_cast<SCRRecoilUnitGraphWidget&>(*this).bNeedZoomToFit = false;
+			bNeedZoomToFit = false;
 		}
 		// else: keep bNeedZoomToFit = true and try again next frame
 	}
@@ -300,8 +288,7 @@ FReply SCRRecoilUnitGraphWidget::OnMouseButtonDown(const FGeometry& MyGeometry, 
 			}
 
 			CurrentRecoilUnitSelection.AddSelection(LastLeftMouseDownFoundUnitID);
-			MoveUnitsDrag = FCRUnitGraphMoveUnitsDelayedDrag(GetUnitGraph(), CurrentRecoilUnitSelection,
-				GetUnitGraph()->GetUnitByID(LastLeftMouseDownFoundUnitID)->Position, MousePanelLocation, EKeys::LeftMouseButton);
+			MoveUnitsDrag = FCRUnitGraphMoveUnitsDelayedDrag(GetUnitGraph(), CurrentRecoilUnitSelection, GetUnitGraph()->GetUnitByID(LastLeftMouseDownFoundUnitID)->Position, MousePanelLocation, EKeys::LeftMouseButton);
 		}
 	}
 
@@ -341,6 +328,8 @@ FReply SCRRecoilUnitGraphWidget::OnMouseButtonUp(const FGeometry& MyGeometry, co
 				CurrentRecoilUnitSelection.ClearSelection();
 			}
 		}
+
+		TryAutoRearrangeUnits();
 	}
 
 	return FReply::Handled();
@@ -581,6 +570,8 @@ void SCRRecoilUnitGraphWidget::AddUnitUnderCursor() const
 
 	const FVector2f CurrentMouseRecoilLocation = GraphCoordsToRecoilCoords(BackgroundWidget->PanelCoordToGraphCoord(CurrentMousePanelPosition));
 	CurrentRecoilUnitGraph->AddUnit(CurrentMouseRecoilLocation);
+
+	TryAutoRearrangeUnits();
 }
 
 void SCRRecoilUnitGraphWidget::AddUnit(const FVector2f& RecoilLocation) const
@@ -626,6 +617,8 @@ void SCRRecoilUnitGraphWidget::PasteUnits() const
 	{
 		CurrentRecoilUnitGraph->AddUnit(Location + CurrentMouseRecoilLocation);
 	}
+
+	TryAutoRearrangeUnits();
 }
 
 void SCRRecoilUnitGraphWidget::DeleteUnits() const
@@ -743,5 +736,13 @@ void SCRRecoilUnitGraphWidget::SelectUnitsInPanelCoordsRect(const FSlateRect& Se
 		{
 			UnitSelection.RemoveSelection(RecoilUnit.ID);
 		}
+	}
+}
+
+void SCRRecoilUnitGraphWidget::TryAutoRearrangeUnits() const
+{
+	if (RecoilPatternEditor && RecoilUnitGraph.IsValid() && RecoilPatternEditor->bEnableAutoRearrangeUnits)
+	{
+		RecoilUnitGraph->RearrangeUnits();
 	}
 }

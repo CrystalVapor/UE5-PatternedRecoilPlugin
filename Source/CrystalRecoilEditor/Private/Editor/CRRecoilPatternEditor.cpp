@@ -1,9 +1,9 @@
 ﻿// Copyright CrystalVapor 2024, All rights reserved.
 
-#include "CRRecoilPatternEditor.h"
-#include "CRRecoilPattern.h"
-#include "CRRecoilPatternEditorCommands.h"
-#include "CRRecoilUnitGraph.h"
+#include "Editor/CRRecoilPatternEditor.h"
+#include "Data/CRRecoilPattern.h"
+#include "Data/CRRecoilUnitGraph.h"
+#include "Editor/CRRecoilPatternEditorCommands.h"
 #include "IStructureDetailsView.h"
 #include "Widget/CRRecoilUnitGraphEditor.h"
 
@@ -15,7 +15,11 @@ void FCRRecoilUnitSelection::AddSelection(const int32 UnitID)
 
 void FCRRecoilUnitSelection::AddSelection(const TArray<int32>& UnitsArray)
 {
-	SelectedUnits.Append(UnitsArray);
+	for (const int32 Unit : UnitsArray)
+	{
+		SelectedUnits.AddUnique(Unit);
+	}
+
 	OnSelectionChanged.Broadcast();
 }
 
@@ -25,6 +29,7 @@ void FCRRecoilUnitSelection::AddSelection(const TArray<FCRRecoilUnit>& RecoilUni
 	{
 		SelectedUnits.AddUnique(RecoilUnit.ID);
 	}
+
 	OnSelectionChanged.Broadcast();
 }
 
@@ -50,7 +55,10 @@ TArray<FCRRecoilUnit*> FCRRecoilUnitSelection::GetSelectedRecoilUnits(UCRRecoilU
 	TArray<FCRRecoilUnit*> SelectedRecoilUnits;
 	for (const int32 UnitID : SelectedUnits)
 	{
-		SelectedRecoilUnits.Add(UnitGraph->GetUnitByID(UnitID));
+		if (FCRRecoilUnit* RecoilUnit = UnitGraph->GetUnitByID(UnitID))
+		{
+			SelectedRecoilUnits.Add(RecoilUnit);
+		}
 	}
 	return SelectedRecoilUnits;
 }
@@ -378,7 +386,7 @@ TSharedRef<SDockTab> FCRRecoilPatternEditor::GetTab_UnitGraph(const FSpawnTabArg
 		BuildTab_UnitGraph();
 	}
 
-	UnitGraphWidget->SetObject(GetRecoilUnitGraph());
+	UnitGraphWidget->SetRecoilUnitGraph(GetRecoilUnitGraph());
 
 	return SNew(SDockTab)
 		.Label(NSLOCTEXT("CRRecoilPatternEditor", "UnitGraphTab", "Graph"))
@@ -541,11 +549,36 @@ void FCRRecoilPatternEditor::OnSelectionChanged() const
 		const int32 UnitID = RecoilUnitSelection.GetSelection()[0];
 		UCRRecoilUnitGraph* RecoilUnitGraph = GetRecoilUnitGraph();
 		check(RecoilUnitGraph);
-		FCRRecoilUnit* RecoilUnit = RecoilUnitGraph->GetUnitByID(UnitID);
+		const FCRRecoilUnit* RecoilUnit = RecoilUnitGraph->GetUnitByID(UnitID);
+
 		if (RecoilUnit && UnitDetailsWidget.IsValid())
 		{
-			const TSharedPtr<FStructOnScope> ScopedSelectedUnitDetails = MakeShared<FStructOnScope>(FCRRecoilUnit::StaticStruct(), reinterpret_cast<uint8*>(RecoilUnit));
-			UnitDetailsWidget->SetStructureData(ScopedSelectedUnitDetails);
+			// Copy unit into a safe scope - avoids dangling pointer if TArray reallocates
+			SelectedUnitScope = MakeShared<FStructOnScope>(FCRRecoilUnit::StaticStruct());
+			FCRRecoilUnit* ScopedUnit = reinterpret_cast<FCRRecoilUnit*>(SelectedUnitScope->GetStructMemory());
+			*ScopedUnit = *RecoilUnit;
+
+			UnitDetailsWidget->GetOnFinishedChangingPropertiesDelegate().Clear();
+			UnitDetailsWidget->GetOnFinishedChangingPropertiesDelegate().AddLambda([this](const FPropertyChangedEvent&)
+			{
+				if (RecoilUnitSelection.GetNum() != 1 || !SelectedUnitScope.IsValid())
+				{
+					return;
+				}
+
+				const int32 CurrentUnitID = RecoilUnitSelection.GetSelection()[0];
+				FCRRecoilUnit* ActualUnit = GetRecoilUnitGraph()->GetUnitByID(CurrentUnitID);
+				if (!ActualUnit)
+				{
+					return;
+				}
+
+				// Write edited copy back into the actual array
+				const FCRRecoilUnit* EditedUnit = reinterpret_cast<const FCRRecoilUnit*>(SelectedUnitScope->GetStructMemory());
+				*ActualUnit = *EditedUnit;
+			});
+
+			UnitDetailsWidget->SetStructureData(SelectedUnitScope);
 		}
 		else
 		{

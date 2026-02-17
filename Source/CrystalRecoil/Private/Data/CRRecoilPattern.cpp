@@ -1,7 +1,7 @@
 ﻿// Copyright CrystalVapor 2024, All rights reserved.
 
-#include "CRRecoilPattern.h"
-#include "CRRecoilUnitGraph.h"
+#include "Data/CRRecoilPattern.h"
+#include "Data/CRRecoilUnitGraph.h"
 
 UCRRecoilPattern::UCRRecoilPattern()
 {
@@ -20,7 +20,7 @@ FVector2f UCRRecoilPattern::GetDeltaRecoilLocation(int32 & InShotIndex) const
 		return FVector2f::ZeroVector;
 	}
 
-	if (InShotIndex>=GetMaxShotIndex())
+	if (InShotIndex >= GetMaxShotIndex())
 	{
 		switch (PatternEndBehavior)
 		{
@@ -31,7 +31,7 @@ FVector2f UCRRecoilPattern::GetDeltaRecoilLocation(int32 & InShotIndex) const
 				InShotIndex = GetMaxShotIndex();
 				break;
 			case ERecoilPatternEndBehavior::RestartFromCustomIndex:
-				InShotIndex = CustomRecoilRestartIndex;
+				InShotIndex = FMath::Clamp<int32>(CustomRecoilRestartIndex, 0, GetMaxShotIndex());
 				break;
 			case ERecoilPatternEndBehavior::Random:
 				return FVector2f(FMath::RandRange(RandomizedRecoil.RandomXRange.X, RandomizedRecoil.RandomXRange.Y), FMath::RandRange(RandomizedRecoil.RandomYRange.X, RandomizedRecoil.RandomYRange.Y)) * 0.5f;

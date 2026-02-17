@@ -1,6 +1,6 @@
 ﻿// Copyright CrystalVapor 2024, All rights reserved.
 
-#include "CRRecoilPatternEditorCommands.h"
+#include "Editor/CRRecoilPatternEditorCommands.h"
 
 #define LOCTEXT_NAMESPACE "CrystalRecoil"
 

@@ -1,8 +1,6 @@
 ﻿#include "CrystalRecoilEditor.h"
-#include "AssetToolsModule.h"
-#include "CRAssetTypeActions_RecoilPattern.h"
-#include "CRRecoilPatternEditorCommands.h"
-#include "IAssetTools.h"
+#include "AssetTools/CRAssetTypeActions_RecoilPattern.h"
+#include "Editor/CRRecoilPatternEditorCommands.h"
 
 #define LOCTEXT_NAMESPACE "CrystalRecoil"
 

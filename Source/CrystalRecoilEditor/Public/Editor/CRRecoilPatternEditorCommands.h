@@ -16,14 +16,21 @@ public:
 	virtual void RegisterCommands() override;
 
 	TSharedPtr<FUICommandInfo> RemoveUnit;
+
 	TSharedPtr<FUICommandInfo> SelectAll;
+
 	TSharedPtr<FUICommandInfo> CopyUnits;
+
 	TSharedPtr<FUICommandInfo> PasteUnits;
+
 	TSharedPtr<FUICommandInfo> ToggleShortcutsVisibility;
 
 	// Toolbar
 	TSharedPtr<FUICommandInfo> UnitsSnapping;
+
 	TSharedPtr<FUICommandInfo> ZoomViewToFit;
+
 	TSharedPtr<FUICommandInfo> UnitScaling;
+
 	TSharedPtr<FUICommandInfo> AutoRearrangeUnits;
 };

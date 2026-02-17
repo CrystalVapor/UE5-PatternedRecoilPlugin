@@ -1,6 +1,6 @@
 ﻿// Copyright CrystalVapor 2024, All rights reserved.
 
-#include "CRRecoilUnitGraph.h"
+#include "Data/CRRecoilUnitGraph.h"
 
 FCRRecoilUnit UCRRecoilUnitGraph::CreateNewUnit(const FVector2f& RecoilUnitLocation)
 {
@@ -16,8 +16,8 @@ int32 UCRRecoilUnitGraph::AddUnit(const FVector2f& RecoilUnitLocation)
 
 void UCRRecoilUnitGraph::InsertUnit(const FCRRecoilUnit& RecoilUnit, const int32 Index)
 {
-	OnUnitAdded.Broadcast(RecoilUnit.ID);
 	RecoilUnits.Insert(RecoilUnit, Index);
+	OnUnitAdded.Broadcast(RecoilUnit.ID);
 }
 
 void UCRRecoilUnitGraph::RemoveAt(const int32 Index)
@@ -34,11 +34,7 @@ void UCRRecoilUnitGraph::RemoveAt(const int32 Index)
 void UCRRecoilUnitGraph::Empty()
 {
 	RecoilUnits.Empty();
-
-	if (RecoilUnits.Num() == 0)
-	{
-		NextID = 0;
-	}
+	NextID = 0;
 }
 
 FVector2f UCRRecoilUnitGraph::GetUnitLocationAt(const int32 Index)
@@ -100,65 +96,23 @@ void UCRRecoilUnitGraph::RearrangeID()
 
 void UCRRecoilUnitGraph::RearrangeUnits()
 {
-	switch (RearrangePolicy)
+	constexpr float PositionTolerance = 0.001f;
+
+	const bool bByY = RearrangePolicy == ECRRecoilUnitGraphRearrangePolicy::AscendByY || RearrangePolicy == ECRRecoilUnitGraphRearrangePolicy::DescendByY;
+	const bool bAscend = RearrangePolicy == ECRRecoilUnitGraphRearrangePolicy::AscendByY || RearrangePolicy == ECRRecoilUnitGraphRearrangePolicy::AscendByX;
+
+	Algo::Sort(RecoilUnits, [bByY, bAscend](const FCRRecoilUnit& A, const FCRRecoilUnit& B)
 	{
-		case ECRRecoilUnitGraphRearrangePolicy::AscendByY:
-		{
-			auto SortLambda = [](const FCRRecoilUnit& A, const FCRRecoilUnit& B)
-			{
-				if (A.Position.Y != B.Position.Y)
-				{
-					return A.Position.Y < B.Position.Y;
-				}
+		const float ValueA = bByY ? A.Position.Y : A.Position.X;
+		const float ValueB = bByY ? B.Position.Y : B.Position.X;
 
-				return A.ID < B.ID;
-			};
-			Algo::Sort(RecoilUnits, SortLambda);
-		}
-		break;
-		case ECRRecoilUnitGraphRearrangePolicy::DescendByY:
+		if (!FMath::IsNearlyEqual(ValueA, ValueB, PositionTolerance))
 		{
-			auto SortLambda = [](const FCRRecoilUnit& A, const FCRRecoilUnit& B)
-			{
-				if (A.Position.Y != B.Position.Y)
-				{
-					return A.Position.Y > B.Position.Y;
-				}
-
-				return A.ID < B.ID;
-			};
-			Algo::Sort(RecoilUnits, SortLambda);
+			return bAscend ? ValueA < ValueB : ValueA > ValueB;
 		}
-		break;
-		case ECRRecoilUnitGraphRearrangePolicy::AscendByX:
-		{
-			auto SortLambda = [](const FCRRecoilUnit& A, const FCRRecoilUnit& B)
-			{
-				if (A.Position.X != B.Position.X)
-				{
-					return A.Position.X < B.Position.X;
-				}
 
-				return A.ID < B.ID;
-			};
-			Algo::Sort(RecoilUnits, SortLambda);
-		}
-		break;
-		case ECRRecoilUnitGraphRearrangePolicy::DescendByX:
-		{
-			auto SortLambda = [](const FCRRecoilUnit& A, const FCRRecoilUnit& B)
-			{
-				if (A.Position.X != B.Position.X)
-				{
-					return A.Position.X > B.Position.X;
-				}
-
-				return A.ID < B.ID;
-			};
-			Algo::Sort(RecoilUnits, SortLambda);
-		}
-		break;
-	}
+		return A.ID < B.ID;
+	});
 }
 
 #if WITH_EDITOR
