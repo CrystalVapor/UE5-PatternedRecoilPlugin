@@ -328,8 +328,6 @@ FReply SCRRecoilUnitGraphWidget::OnMouseButtonUp(const FGeometry& MyGeometry, co
 				CurrentRecoilUnitSelection.ClearSelection();
 			}
 		}
-
-		TryAutoRearrangeUnits();
 	}
 
 	return FReply::Handled();
@@ -377,6 +375,8 @@ FReply SCRRecoilUnitGraphWidget::OnMouseMove(const FGeometry& MyGeometry, const 
 			MoveUnitsDrag->ApplyMovement(RecoilUnitSelection, DeltaRecoilLocation);
 			MoveUnitsDrag->LastRecoilCoordsLocation = SnappedNewRecoilLocation;
 		}
+
+		TryAutoRearrangeUnits();
 	}
 
 	if (ScaleUnitsDrag.IsSet())
