@@ -45,11 +45,11 @@ When the player shoots beyond the defined pattern length, `ERecoilBehaviorOnShot
 
 ## Recoil Implementation Details
 
-First, the delta rotation is calculated from the recoil pattern coordinates.
+**Uplift:** Delta rotation is calculated from the recoil pattern coordinates. Using kinematic equations *(v₀ = 2d/T, a = 2d/T²)*, an initial speed and deceleration are derived that guarantee the camera travels exactly that distance in exactly the configured uplift duration. The deceleration is applied each tick until the full recoil is consumed.
 
-Then, using kinematic equations *(v₀ = 2d/T, a = 2d/T²)*, an initial speed and deceleration are derived that guarantee the camera travels exactly that distance in exactly the configured uplift duration.
+**Compensation:** Player input that opposes accumulated recoil (e.g., pulling down while gun kicks up) reduces the recovery debt in real-time, allowing skilled players to manually control recoil.
 
-The deceleration is applied each tick until the full recoil is consumed, after which recovery returns the camera to its pre-shot position.
+**Recovery:** After `RecoveryDelay`, the camera automatically returns toward the pre-shot position at a configurable speed and acceleration. Recovery can be canceled if the player makes large aiming movements (controlled by `RecoveryCancelThreshold`), allowing natural aim adjustments without fighting the system.
 
 ## Recoil Pattern Editor Shortcuts
 
@@ -60,19 +60,19 @@ The deceleration is applied each tick until the full recoil is consumed, after w
 - **F**: Zoom View to Fit
 - **H**: Toggle Shortcuts
 
-## Additional Information
+## Recoil Spread Component
 
-The plugin comes with a `CRSpreadRecoilComponent`, which can be used to add random spread effects when shooting.
+The plugin comes with a `UCRRecoilSpreadComponent`, which extends `UCRRecoilComponent` with a heat-based spread system.
+Since it inherits all base recoil functionality, you only need one component - use `UCRRecoilSpreadComponent` instead of
+`UCRRecoilComponent` if you want spread.
 
-The spread effect is based on three `FRichCurve` curves:
+The spread effect is driven by three curves configured in the editor:
 
-`ShotToHeatCurve` - Defines the heat added by each shot
+- `ShotToHeatCurve` - heat added per shot based on current heat
+- `HeatToSpreadAngleCurve` - spread angle corresponding to the current heat
+- `HeatToCooldownPerSecondCurve` - heat lost per second based on current heat
 
-`HeatToSpreadAngleCurve` - Defines the spread angle corresponding to the current heat
-
-`HeatToCooldownPerSecondCurve` - Defines the heat that cools down per second under the current heat
-
-After setting the three curves, you can call `UCRSpreadRecoilComponent::GetCurrentSpreadAngle` to get the current spread angle when calculating the ray before shooting
+Call `UCRRecoilSpreadComponent::GetCurrentSpreadAngle()` before each shot to get the current spread angle for projectile direction calculation.
 
 ## License
 
