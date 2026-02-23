@@ -11,22 +11,14 @@ void UCRRecoilSpreadComponent::TickComponent(float DeltaTime, ELevelTick TickTyp
         DoHeatCooldown(DeltaTime);
     }
 
-    // Re-enable tick if base class disabled it but heat cooldown still needs to run
-    if (!FMath::IsNearlyZero(CurrentRecoilHeat) && !IsComponentTickEnabled())
-    {
-        SetComponentTickEnabled(true);
-    }
-
-    // Disable tick only when both heat is cooled and base recoil is complete
-    if (FMath::IsNearlyZero(CurrentRecoilHeat) && IsComponentTickEnabled())
-    {
-        SetComponentTickEnabled(false);
-    }
+    // Keeps ticking if heat still needs cooldown or base recoil is still active
+    const bool bHasPendingRecoilWork = !FMath::IsNearlyZero(CurrentRecoilHeat) || !RecoilToApply.IsNearlyZero() || !RecoilToRecover.IsNearlyZero(0.001f);
+    SetComponentTickEnabled(bHasPendingRecoilWork);
 }
 
 void UCRRecoilSpreadComponent::ApplyShot()
 {
-    Super::ApplyShot(); // Re-enables tick via StartNewRecoilSequence
+    Super::ApplyShot();
 
     if (ReadyToCalculateRecoil())
     {
@@ -36,7 +28,7 @@ void UCRRecoilSpreadComponent::ApplyShot()
 
 void UCRRecoilSpreadComponent::AddRecoilHeat(const float InHeat)
 {
-    // It's not redundant for external Blueprint calls — if someone calls AddRecoilHeat outside of ApplyShot
+    // It's not redundant for external Blueprint calls - if someone calls AddRecoilHeat outside of ApplyShot
     SetComponentTickEnabled(true);
     SetRecoilHeat(GetRecoilHeat() + InHeat);
 }

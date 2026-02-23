@@ -4,6 +4,8 @@
 #include "Data/CRRecoilInterface.h"
 #include "Data/CRRecoilPattern.h"
 
+DEFINE_LOG_CATEGORY_STATIC(LogRecoilComponent, Log, All);
+
 UCRRecoilComponent::UCRRecoilComponent()
 {
 	PrimaryComponentTick.bCanEverTick = true;
@@ -86,7 +88,7 @@ void UCRRecoilComponent::TickComponent(float DeltaTime, ELevelTick TickType, FAc
 
 				if (bPlayerAimedAway)
 				{
-					// Player took manual control - forgive recovery debt
+					// Player took manual control - cancel and reset recovery
 					RecoilToRecover = FRotator::ZeroRotator;
 					SetComponentTickEnabled(false);
 					return;
@@ -128,7 +130,7 @@ void UCRRecoilComponent::ApplyShot()
 		return;
 	}
 
-	const FVector2f DeltaRecoilLocation = RecoilStrength * RecoilPattern->GetDeltaRecoilLocation(CurrentShotIndex);
+	const FVector2f DeltaRecoilLocation = RecoilPattern->ConsumeShot(CurrentShotIndex) * RecoilStrength;
 	const float DeltaRecoilLength = DeltaRecoilLocation.Size();
 
 	// Map UpliftSpeed (0-1) to duration: high sharpness = short = snappy
@@ -148,7 +150,6 @@ void UCRRecoilComponent::ApplyShot()
 	RecoilToApply = VectorToRotator(DeltaRecoilLocation);
 	CurrentRecoverySpeed = RecoilPattern->InitialRecoverySpeed;
 	LastFireTime = GetWorld()->GetTimeSeconds();
-	++CurrentShotIndex;
 }
 
 void UCRRecoilComponent::ReduceRecoveryByPlayerInput(const FRotator& LastFrameInput)
@@ -173,26 +174,34 @@ void UCRRecoilComponent::ReduceRecoveryByPlayerInput(const FRotator& LastFrameIn
 
 void UCRRecoilComponent::ApplyInputToController(AController* TargetController, const FRotator& Input)
 {
-	if (TargetController && TargetController->IsLocalPlayerController())
+	if (!TargetController)
 	{
-		FRotator CurrentRotation = TargetController->GetControlRotation();
-
-		// Apply the recoil delta
-		CurrentRotation.Pitch -= Input.Pitch;
-		CurrentRotation.Yaw += Input.Yaw;
-
-		// Clamp pitch before normalizing to prevent gimbal lock
-		CurrentRotation.Pitch = FMath::ClampAngle(CurrentRotation.Pitch, -89.9f, 89.9f);
-
-		// Normalize yaw to keep it in -180 to 180 range
-		CurrentRotation.Normalize();
-
-		TargetController->SetControlRotation(CurrentRotation);
+		return;
 	}
+
+	FRotator CurrentRotation = TargetController->GetControlRotation();
+
+	// Apply the recoil delta
+	CurrentRotation.Pitch -= Input.Pitch;
+	CurrentRotation.Yaw += Input.Yaw;
+
+	// Clamp pitch before normalizing to prevent gimbal lock
+	CurrentRotation.Pitch = FMath::ClampAngle(CurrentRotation.Pitch, -89.9f, 89.9f);
+
+	// Normalize yaw to keep it in -180 to 180 range
+	CurrentRotation.Normalize();
+
+	TargetController->SetControlRotation(CurrentRotation);
 }
 
 void UCRRecoilComponent::StartNewRecoilSequence()
 {
+	// On dedicated servers and remote clients the controller is either null or non-local, so there is nothing to animate
+	if (const AController* Controller = GetTargetController(); !Controller || !Controller->IsLocalPlayerController())
+	{
+		return;
+	}
+
 	CurrentShotIndex = 0;
 	AccumulatedInputDuringBurst = FRotator::ZeroRotator;
 
@@ -228,11 +237,13 @@ FRotator UCRRecoilComponent::VectorToRotator(const FVector2f InputVector)
 
 AController* UCRRecoilComponent::GetTargetController() const
 {
-	UObject* Owner = GetOwner();
-	if (!ensureMsgf(Owner && Owner->Implements<UCRRecoilInterface>(), TEXT("Owner must implement ICRRecoilInterface")))
+	const UObject* Owner = GetOwner();
+	if (!Owner || !Owner->Implements<UCRRecoilInterface>())
 	{
+		UE_LOG(LogRecoilComponent, Error, TEXT("CRRecoilComponent on '%s': owner must implement ICRRecoilInterface"), Owner ? *Owner->GetName() : TEXT("null"));
 		return nullptr;
 	}
+
 	return ICRRecoilInterface::Execute_K2_GetTargetController(Owner);
 }
 

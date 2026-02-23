@@ -46,21 +46,23 @@ public:
 
 	UCRRecoilUnitGraph* GetUnitGraph() const;
 
-	// Returns the incremental recoil to be applied compared to the previous shot
-	// Clamp the InShotIndex to the valid range
-	// e.g. use 1 to get the recoil increment from the shot 0 to shot 1
-	// this function auto clamps the shotIndex refer to PatternEndBehavior
-	FVector2f GetDeltaRecoilLocation(int32& InShotIndex) const;
+	/**
+	* Returns the incremental recoil delta for the current shot and advances ShotIndex to the next one
+	* PatternEndBehavior controls what happens once ShotIndex exceeds the pattern length:
+	*   Stop                   - returns zero; index stays put
+	*   RepeatLast             - returns the last delta forever; index stays put
+	*   RestartFromCustomIndex - resets index to the loop point, then advances normally
+	*   Random                 - returns a random delta; index stays put
+	*/
+	FVector2f ConsumeShot(int32& ShotIndex) const;
 
 	int32 GetMaxShotIndex() const;
-
-	FVector2f GetDeltaRecoilLocationInternal(const int32 InShotIndex) const;
 
 	UPROPERTY()
 	UCRRecoilUnitGraph* RecoilUnitGraph = nullptr;
 
 	/**
-	* Controls how fast the recoil kick reaches its peak.
+	* Controls how fast the recoil kick reaches its peak
 	* 0.0 = Slow, smooth rise (floaty, heavy weapon feel)
 	* 1.0 = Instant violent snap (sharp, aggressive kick)
 	*/
@@ -69,7 +71,7 @@ public:
 
 	/**
 	* Time to wait after the last shot before recovery begins
-	* Set to 0 to disable Recovery completely
+	* Set to 0 for recovery to begin immediately on the next frame after the last shot
 	*/
 	UPROPERTY(EditAnywhere, Meta = (ClampMin = 0.f, ForceUnits = "s"), Category = "Recovery")
 	float RecoveryDelay = 0.1f;

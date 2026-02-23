@@ -13,43 +13,57 @@ UCRRecoilUnitGraph* UCRRecoilPattern::GetUnitGraph() const
 	return RecoilUnitGraph;
 }
 
-FVector2f UCRRecoilPattern::GetDeltaRecoilLocation(int32 & InShotIndex) const
+FVector2f UCRRecoilPattern::ConsumeShot(int32& ShotIndex) const
 {
+	// Graph units are in "half-degree" space: allows to author values at 2x scale for finer control
+	// Multiplying by this value will convert a graph-space delta to actual degrees of camera rotation
+	constexpr float GraphToDegrees = 0.5f;
+
 	if (RecoilUnitGraph->GetUnitCount() == 0)
 	{
 		return FVector2f::ZeroVector;
 	}
 
-	if (InShotIndex >= GetMaxShotIndex())
+	if (ShotIndex >= GetMaxShotIndex())
 	{
 		switch (PatternEndBehavior)
 		{
 			case ERecoilPatternEndBehavior::Stop:
-				InShotIndex = GetMaxShotIndex();
+			{
 				return FVector2f::ZeroVector;
+			}
 			case ERecoilPatternEndBehavior::RepeatLast:
-				InShotIndex = GetMaxShotIndex();
-				break;
+			{
+				const int32 MaxIndex = GetMaxShotIndex();
+				const FVector2f Current  = RecoilUnitGraph->GetUnitLocationAt(MaxIndex);
+				const FVector2f Previous = MaxIndex > 0 ? RecoilUnitGraph->GetUnitLocationAt(MaxIndex - 1) : FVector2f::ZeroVector;
+				return (Current - Previous) * GraphToDegrees;
+			}
 			case ERecoilPatternEndBehavior::RestartFromCustomIndex:
-				InShotIndex = FMath::Clamp<int32>(CustomRecoilRestartIndex, 0, GetMaxShotIndex());
+			{
+				ShotIndex = FMath::Clamp<int32>(CustomRecoilRestartIndex, 0, GetMaxShotIndex());
 				break;
+			}
 			case ERecoilPatternEndBehavior::Random:
-				return FVector2f(FMath::RandRange(RandomizedRecoil.RandomXRange.X, RandomizedRecoil.RandomXRange.Y), FMath::RandRange(RandomizedRecoil.RandomYRange.X, RandomizedRecoil.RandomYRange.Y)) * 0.5f;
+			{
+				return FVector2f
+				(
+					// Non-deterministic: recoil is a local visual-only effect and does not need to match across server/clients
+					FMath::RandRange(RandomizedRecoil.RandomXRange.X, RandomizedRecoil.RandomXRange.Y),
+					FMath::RandRange(RandomizedRecoil.RandomYRange.X, RandomizedRecoil.RandomYRange.Y)
+				) * GraphToDegrees;
+			}
 		}
 	}
 
-	return GetDeltaRecoilLocationInternal(InShotIndex) * 0.5f;
+	// Normal path (and RestartFromCustomIndex after reset): consume this shot and advance the index
+	const FVector2f Current = RecoilUnitGraph->GetUnitLocationAt(ShotIndex);
+	const FVector2f Previous = ShotIndex > 0 ? RecoilUnitGraph->GetUnitLocationAt(ShotIndex - 1) : FVector2f::ZeroVector;
+	++ShotIndex;
+	return (Current - Previous) * GraphToDegrees;
 }
 
 int32 UCRRecoilPattern::GetMaxShotIndex() const
 {
 	return RecoilUnitGraph->GetUnitCount() - 1;
-}
-
-FVector2f UCRRecoilPattern::GetDeltaRecoilLocationInternal(const int32 InShotIndex) const
-{
-	const FVector2f RecoilUnit = RecoilUnitGraph->GetUnitLocationAt(InShotIndex);
-	const FVector2f RecoilUnitPrevious = InShotIndex > 0 ? RecoilUnitGraph->GetUnitLocationAt(InShotIndex - 1) : FVector2f::ZeroVector;
-	const FVector2f RecoilUnitDelta = RecoilUnit - RecoilUnitPrevious;
-	return RecoilUnitDelta;
 }
