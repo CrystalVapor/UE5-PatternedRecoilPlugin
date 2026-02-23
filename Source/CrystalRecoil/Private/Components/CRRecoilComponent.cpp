@@ -125,7 +125,8 @@ void UCRRecoilComponent::TickComponent(float DeltaTime, ELevelTick TickType, FAc
 
 void UCRRecoilComponent::ApplyShot()
 {
-	if (!RecoilPattern)
+	const AController* Controller = GetTargetController();
+	if (!Controller || !Controller->IsLocalPlayerController() || !RecoilPattern)
 	{
 		return;
 	}
@@ -196,8 +197,8 @@ void UCRRecoilComponent::ApplyInputToController(AController* TargetController, c
 
 void UCRRecoilComponent::StartNewRecoilSequence()
 {
-	// On dedicated servers and remote clients the controller is either null or non-local, so there is nothing to animate
-	if (const AController* Controller = GetTargetController(); !Controller || !Controller->IsLocalPlayerController())
+	const AController* Controller = GetTargetController();
+	if (!Controller || !Controller->IsLocalPlayerController())
 	{
 		return;
 	}

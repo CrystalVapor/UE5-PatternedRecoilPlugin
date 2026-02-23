@@ -25,7 +25,7 @@ public:
 	* Assigns the recoil pattern to use for this component
 	* Call before StartShooting
 	*/
-	UFUNCTION(BlueprintCallable, Category = "Recoil Component")
+	UFUNCTION(BlueprintCallable, Meta = (AllowAbstract = false), Category = "Recoil Component")
 	void SetRecoilPattern(UCRRecoilPattern* InRecoilPattern);
 
 	/**
@@ -86,10 +86,10 @@ protected:
 
 	static FRotator VectorToRotator(const FVector2f InputVector);
 
-	// Recoil pattern and strength
-	UPROPERTY()
+	UPROPERTY(BlueprintReadOnly, EditDefaultsOnly, Category = "Recoil Component")
 	TObjectPtr<UCRRecoilPattern> RecoilPattern;
 
+	// Recoil strength and index parameters
 	float RecoilStrength = 1.f;
 	int32 CurrentShotIndex = 0;
 

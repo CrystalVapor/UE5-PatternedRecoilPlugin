@@ -29,7 +29,8 @@ then drive them at runtime through a Blueprint and C++ API.
    - `GetRecoilComponent` return the `CRRecoilComponent`
    - `GetTargetController` return the `APlayerController` to apply recoil to
 3. Create a `CRRecoilPattern` Data Asset and configure the recoil pattern
-4. Call `UCRRecoilComponent::SetRecoilPattern` to assign the pattern at runtime
+4. Set `CRRecoilPattern` in the `CRRecoilComponent` defaults
+   - Or call `UCRRecoilComponent::SetRecoilPattern` to assign the pattern at runtime
 5. On fire start: call `ICRRecoilInterface::StartShooting`
 6. On each shot: call `ICRRecoilInterface::ApplyShot`
 7. On fire end: call `ICRRecoilInterface::EndShooting`
