@@ -104,7 +104,7 @@ public:
 	* Set to 0 to disable (recovery always completes regardless of player aiming)
 	*/
 	UPROPERTY(EditAnywhere, Meta = (ClampMin = 0.f, ClampMax = 90.f, ForceUnits = "deg"), Category = "Recovery")
-	float RecoveryCancelThreshold = 5.f;
+	float RecoveryCancelThreshold = 0.f;
 
 	/**
 	* Defines behavior when the player shoots beyond the defined pattern length
