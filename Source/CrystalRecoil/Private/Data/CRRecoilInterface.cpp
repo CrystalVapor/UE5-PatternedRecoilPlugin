@@ -10,7 +10,7 @@ void ICRRecoilInterface::StartShooting()
 	// Writing this as a one-liner causes the temporary to be destroyed too early, resulting in a crash.
 	if (UCRRecoilComponent* RecoilComponent = Execute_K2_GetRecoilComponent(Cast<UObject>(this)))
 	{
-		RecoilComponent->StartNewRecoilSequence();
+		RecoilComponent->StartShooting();
 	}
 }
 

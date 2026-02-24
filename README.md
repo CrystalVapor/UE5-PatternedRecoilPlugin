@@ -33,7 +33,7 @@ then drive them at runtime through a Blueprint and C++ API.
    - Or call `UCRRecoilComponent::SetRecoilPattern` to assign the pattern at runtime
 5. On fire start: call `ICRRecoilInterface::StartShooting`
 6. On each shot: call `ICRRecoilInterface::ApplyShot`
-7. On fire end: call `ICRRecoilInterface::EndShooting`
+7. On fire end: call `ICRRecoilInterface::EndShooting`, but only if overridden. Does nothing by default.
 
 ## Recoil Pattern Behavior
 

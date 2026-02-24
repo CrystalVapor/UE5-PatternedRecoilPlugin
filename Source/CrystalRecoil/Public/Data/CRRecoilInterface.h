@@ -52,7 +52,7 @@ public:
 	/**
 	* Ends the current recoil sequence.
 	* Call this when the player releases the fire button or after a timeout.
-	* Blueprint implementable version - override only if you need custom behavior.
+	* Blueprint implementable version - override if you need custom behavior. Does nothing by default.
 	*/
 	UFUNCTION(BlueprintCallable, DisplayName = "End Shooting", BlueprintNativeEvent)
 	void K2_EndShooting();
@@ -99,7 +99,12 @@ public:
 
 	/**
 	* C++ version of EndShooting.
-	* Override this in C++ implementations for custom shooting end logic.
+	* Does nothing by default — override in C++ implementations if needed.
+	*
+	* Example use cases:
+	* - Start burst cooldown tracking
+	* - Trigger weapon heat dissipation
+	* - Play fire-end audio/VFX
 	*/
 	virtual void EndShooting();
 

@@ -69,10 +69,10 @@ void UCRRecoilComponent::TickComponent(float DeltaTime, ELevelTick TickType, FAc
 	}
 
 	// Accumulate player input during RecoveryDelay wait, but not during uplift
-	if (bTrackingBurstInput && RecoilToApply.IsNearlyZero() && LastFireTime + RecoilPattern->RecoveryDelay >= World->GetTimeSeconds())
+	if (bTrackingInputDuringFire && RecoilToApply.IsNearlyZero() && LastFireTime + RecoilPattern->RecoveryDelay >= World->GetTimeSeconds())
 	{
-		AccumulatedInputDuringBurst.Pitch += InputLastFrame.Pitch;
-		AccumulatedInputDuringBurst.Yaw += InputLastFrame.Yaw;
+		AccumulatedInputDuringFire.Pitch += InputLastFrame.Pitch;
+		AccumulatedInputDuringFire.Yaw += InputLastFrame.Yaw;
 	}
 
 	// Apply recoil recovery - only after uplift is fully complete
@@ -81,10 +81,10 @@ void UCRRecoilComponent::TickComponent(float DeltaTime, ELevelTick TickType, FAc
 		if (LastFireTime + RecoilPattern->RecoveryDelay < World->GetTimeSeconds())
 		{
 			// Cancel recovery if player made large aiming movements during burst
-			if (bTrackingBurstInput && RecoilPattern->RecoveryCancelThreshold > 0.f)
+			if (bTrackingInputDuringFire && RecoilPattern->RecoveryCancelThreshold > 0.f)
 			{
-				bTrackingBurstInput = false; // Stop tracking once we check
-				const bool bPlayerAimedAway = FMath::Abs(AccumulatedInputDuringBurst.Pitch) > RecoilPattern->RecoveryCancelThreshold || FMath::Abs(AccumulatedInputDuringBurst.Yaw) > RecoilPattern->RecoveryCancelThreshold;
+				bTrackingInputDuringFire = false; // Stop tracking once we check
+				const bool bPlayerAimedAway = FMath::Abs(AccumulatedInputDuringFire.Pitch) > RecoilPattern->RecoveryCancelThreshold || FMath::Abs(AccumulatedInputDuringFire.Yaw) > RecoilPattern->RecoveryCancelThreshold;
 
 				if (bPlayerAimedAway)
 				{
@@ -195,7 +195,7 @@ void UCRRecoilComponent::ApplyInputToController(AController* TargetController, c
 	TargetController->SetControlRotation(CurrentRotation);
 }
 
-void UCRRecoilComponent::StartNewRecoilSequence()
+void UCRRecoilComponent::StartShooting()
 {
 	const AController* Controller = GetTargetController();
 	if (!Controller || !Controller->IsLocalPlayerController())
@@ -204,11 +204,11 @@ void UCRRecoilComponent::StartNewRecoilSequence()
 	}
 
 	CurrentShotIndex = 0;
-	AccumulatedInputDuringBurst = FRotator::ZeroRotator;
+	AccumulatedInputDuringFire = FRotator::ZeroRotator;
 
 	if (RecoilPattern)
 	{
-		bTrackingBurstInput = RecoilPattern->RecoveryDelay > 0.f && RecoilPattern->RecoveryCancelThreshold > 0.f;
+		bTrackingInputDuringFire = RecoilPattern->RecoveryDelay > 0.f && RecoilPattern->RecoveryCancelThreshold > 0.f;
 		SetComponentTickEnabled(true);
 	}
 }

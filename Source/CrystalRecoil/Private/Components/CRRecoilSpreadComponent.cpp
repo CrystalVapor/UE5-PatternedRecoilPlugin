@@ -12,7 +12,7 @@ void UCRRecoilSpreadComponent::TickComponent(float DeltaTime, ELevelTick TickTyp
     }
 
     // Keeps ticking if heat still needs cooldown or base recoil is still active
-    const bool bHasPendingRecoilWork = !FMath::IsNearlyZero(CurrentRecoilHeat) || !RecoilToApply.IsNearlyZero() || !RecoilToRecover.IsNearlyZero(0.001f);
+    const bool bHasPendingRecoilWork = !FMath::IsNearlyZero(CurrentRecoilHeat) || !RecoilToApply.IsNearlyZero() || !RecoilToRecover.IsNearlyZero(0.001);
     SetComponentTickEnabled(bHasPendingRecoilWork);
 }
 

@@ -49,7 +49,7 @@ protected:
 	* Called automatically by StartShooting via ICRRecoilInterface.
 	* Override in subclasses to reset additional state on fire start.
 	*/
-	virtual void StartNewRecoilSequence();
+	virtual void StartShooting();
 
 	/**
 	* Called before each recoil delta is applied to the controller.
@@ -104,10 +104,12 @@ protected:
 	float LastFireTime = 0.f;
 
 	// Recovery cancellation tracking
-	FRotator AccumulatedInputDuringBurst = FRotator::ZeroRotator;
-	bool bTrackingBurstInput = false;
+	bool bTrackingInputDuringFire = false;
+	FRotator AccumulatedInputDuringFire = FRotator::ZeroRotator;
 
 	// Input tracking for compensation
 	FRotator RecoilInputGeneratedLastFrame = FRotator::ZeroRotator;
 	FRotator CachedControllerRotation = FRotator::ZeroRotator;
+
+	TWeakObjectPtr<APlayerController> PlayerController;
 };
