@@ -84,8 +84,6 @@ protected:
 
 	AController* GetTargetController() const;
 
-	static FRotator VectorToRotator(const FVector2f InputVector);
-
 	UPROPERTY(BlueprintReadOnly, EditDefaultsOnly, Category = "Recoil Component")
 	TObjectPtr<UCRRecoilPattern> RecoilPattern;
 

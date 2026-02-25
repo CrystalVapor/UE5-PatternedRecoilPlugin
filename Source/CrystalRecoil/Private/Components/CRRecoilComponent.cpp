@@ -114,8 +114,11 @@ void UCRRecoilComponent::TickComponent(float DeltaTime, ELevelTick TickType, FAc
 	}
 	else if (RecoilToApply.IsNearlyZero() && RecoilToRecover.IsNearlyZero(0.001))
 	{
-		// Nothing to process - disable tick as a safety net
-		SetComponentTickEnabled(false);
+		// Nothing to process - disable tick only if we're past the recovery delay window
+		if (World->GetTimeSeconds() > LastFireTime + RecoilPattern->RecoveryDelay)
+		{
+			SetComponentTickEnabled(false);
+		}
 	}
 
 	// Negate pitch because ApplyInputToController does Pitch -= Input.Pitch (inverted), but Yaw is additive (Yaw += Input.Yaw), so it keeps its sign.
@@ -131,8 +134,8 @@ void UCRRecoilComponent::ApplyShot()
 		return;
 	}
 
-	const FVector2f DeltaRecoilLocation = RecoilPattern->ConsumeShot(CurrentShotIndex) * RecoilStrength;
-	const float DeltaRecoilLength = DeltaRecoilLocation.Size();
+	const FVector2f RecoilPositionDelta = RecoilPattern->ConsumeShot(CurrentShotIndex) * RecoilStrength;
+	const float RecoilDeltaLength = RecoilPositionDelta.Size();
 
 	// Map UpliftSpeed (0-1) to duration: high sharpness = short = snappy
 	// Lerp in speed space (1/T) instead of time space so sharpness feels linear
@@ -145,10 +148,10 @@ void UCRRecoilComponent::ApplyShot()
 
 	// Kinematics: v0 = 2d/T, a = 2d/T^2
 	// Guarantees camera travels exactly DeltaRecoilLength in exactly UpliftDuration
-	CurrentUpliftDeceleration = (2.f * DeltaRecoilLength) / (UpliftDuration * UpliftDuration);
-	CurrentRecoilSpeed = 2.f * DeltaRecoilLength / UpliftDuration;
+	CurrentUpliftDeceleration = (2.f * RecoilDeltaLength) / (UpliftDuration * UpliftDuration);
+	CurrentRecoilSpeed = 2.f * RecoilDeltaLength / UpliftDuration;
 
-	RecoilToApply = VectorToRotator(DeltaRecoilLocation);
+	RecoilToApply = FRotator(-RecoilPositionDelta.Y, RecoilPositionDelta.X, 0.0);
 	CurrentRecoverySpeed = RecoilPattern->InitialRecoverySpeed;
 	LastFireTime = GetWorld()->GetTimeSeconds();
 }
@@ -229,11 +232,6 @@ void UCRRecoilComponent::SetRecoilStrength(const float InRecoilStrength)
 float UCRRecoilComponent::GetRecoilStrength() const
 {
 	return RecoilStrength;
-}
-
-FRotator UCRRecoilComponent::VectorToRotator(const FVector2f InputVector)
-{
-	return FRotator(-InputVector.Y, InputVector.X, 0.0);
 }
 
 AController* UCRRecoilComponent::GetTargetController() const

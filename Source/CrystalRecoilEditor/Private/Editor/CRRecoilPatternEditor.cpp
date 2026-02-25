@@ -451,7 +451,7 @@ void FCRRecoilPatternEditor::Command_SelectAll()
 	UCRRecoilUnitGraph* RecoilUnitGraph = GetRecoilUnitGraph();
 	check(RecoilUnitGraph);
 	RecoilUnitSelection.ClearSelection();
-	RecoilUnitSelection.AddSelection(RecoilUnitGraph->GetRawData());
+	RecoilUnitSelection.AddSelection(RecoilUnitGraph->GetRecoilUnits());
 }
 
 void FCRRecoilPatternEditor::Command_CopyUnits() const

@@ -45,9 +45,19 @@ struct FCRRecoilUnit
 		return ID == Other.ID;
 	}
 
+	/**
+	* Internal identifier used for selection, sorting, and array indexing
+	* Automatically managed
+	*/
 	UPROPERTY(VisibleAnywhere, Category = "Unit")
 	uint32 ID;
 
+	/**
+	* Recoil delta from the previous unit
+	* X = horizontal degrees (Yaw)
+	* Y = vertical degrees (Pitch)
+	* Example: (0.5, 2.0) means kick 0.5° right and 2.0° up from the last shot
+	*/
 	UPROPERTY(EditAnywhere, Category = "Unit")
 	FVector2f Position;
 };
@@ -70,7 +80,7 @@ public:
 
 	void Empty();
 
-	FVector2f GetUnitLocationAt(const int32 Index);
+	FVector2f GetUnitPositionAt(const int32 Index);
 
 	FCRRecoilUnit& GetUnitAt(const int32 Index);
 
@@ -82,7 +92,7 @@ public:
 
 	FCRRecoilUnit* GetUnitByID(uint32 ID);
 
-	TArray<FCRRecoilUnit>& GetRawData();
+	TArray<FCRRecoilUnit>& GetRecoilUnits();
 
 	// Rearrange the ID of the units
 	void RearrangeID();

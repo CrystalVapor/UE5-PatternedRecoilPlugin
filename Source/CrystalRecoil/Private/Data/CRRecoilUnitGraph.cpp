@@ -37,7 +37,7 @@ void UCRRecoilUnitGraph::Empty()
 	NextID = 0;
 }
 
-FVector2f UCRRecoilUnitGraph::GetUnitLocationAt(const int32 Index)
+FVector2f UCRRecoilUnitGraph::GetUnitPositionAt(const int32 Index)
 {
 	return GetUnitAt(Index).Position;
 }
@@ -73,7 +73,7 @@ FCRRecoilUnit* UCRRecoilUnitGraph::GetUnitByID(uint32 ID)
 	return RecoilUnits.FindByPredicate([ID](const FCRRecoilUnit& Unit) { return Unit.ID == ID; });
 }
 
-TArray<FCRRecoilUnit>& UCRRecoilUnitGraph::GetRawData()
+TArray<FCRRecoilUnit>& UCRRecoilUnitGraph::GetRecoilUnits()
 {
 	return RecoilUnits;
 }
