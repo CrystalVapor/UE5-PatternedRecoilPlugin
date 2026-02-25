@@ -26,7 +26,6 @@ USTRUCT()
 struct FCRRecoilUnit
 {
 	GENERATED_BODY()
-	;
 
 	FCRRecoilUnit()
 		: ID(0)
