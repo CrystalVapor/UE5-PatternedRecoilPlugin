@@ -112,7 +112,7 @@ void UCRRecoilComponent::TickComponent(float DeltaTime, ELevelTick TickType, FAc
 			}
 		}
 	}
-	else if (RecoilToApply.IsNearlyZero() && RecoilToRecover.IsNearlyZero(0.001))
+	else if (RecoilToApply.IsNearlyZero() && RecoilToRecover.IsNearlyZero())
 	{
 		// Nothing to process - disable tick only if we're past the recovery delay window
 		if (World->GetTimeSeconds() > LastFireTime + RecoilPattern->RecoveryDelay)
