@@ -78,6 +78,10 @@ The spread effect is driven by three curves configured in the editor:
 
 Call `UCRRecoilSpreadComponent::GetCurrentSpreadAngle()` before each shot to get the current spread angle for projectile direction calculation.
 
+## Acknowledgements
+
+Huge thanks to @Solessfir for the massive overhaul in v2.0! His contributions significantly improved the architecture, physics model, and editor UX.
+
 ## License
 
 This plugin is licensed under the MIT License
