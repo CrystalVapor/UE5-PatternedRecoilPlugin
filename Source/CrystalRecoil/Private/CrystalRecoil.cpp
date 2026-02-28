@@ -1,18 +1,13 @@
-﻿// Copyright Epic Games, Inc. All Rights Reserved.
-
-#include "CrystalRecoil.h"
+﻿#include "CrystalRecoil.h"
 
 #define LOCTEXT_NAMESPACE "FCrystalRecoilModule"
 
 void FCrystalRecoilModule::StartupModule()
 {
-	// This code will execute after your module is loaded into memory; the exact timing is specified in the .uplugin file per-module
 }
 
 void FCrystalRecoilModule::ShutdownModule()
 {
-	// This function may be called during shutdown to clean up your module.  For modules that support dynamic reloading,
-	// we call this function before unloading the module.
 }
 
 #undef LOCTEXT_NAMESPACE

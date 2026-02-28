@@ -1,67 +1,83 @@
 # Crystal Recoil
 
-## 介绍 | Introduction
+## Introduction
 
-本插件是由一位俄罗斯程序员编写的RecoilSystem插件所启发的，是原始插件的**完全重写**。
-This plugin is inspired by RecoilSystem which was wrote by a Russian Programmer, and is **a complete rewrite** of the original plugin.
+CrystalRecoil is an Unreal Engine plugin that provides a pattern-based recoil system for shooter games.
+Define per-weapon recoil patterns visually using the built-in Recoil Pattern Editor,
+then drive them at runtime through a Blueprint and C++ API.
 
-Crystal's Recoil 允许你为自己的射击游戏添加模板化的后坐力效果，并且可以使用一个GUI界面来调整后坐力模板和其他细节参数。
-Crystal's Recoil allows you to add templated recoil effects to your shooting game, and you can use a GUI interface to adjust the recoil template and other detailed parameters.
+![Editor Screenshot](Resources/Screenshot_After.png)
 
-## 特性 | Features
+## Features
 
-- 模板化后坐力  | Patterned Recoil
-- 完全的GUI界面  | Full GUI Interface
-- 易于使用的代码接口  | Easy-to-use Code Interface
-- 完全的蓝图支持 | Blueprints Fully Accessible
-- 支持后坐力回复/补偿(未完成)  | Support Recoil Recovery/Compensation (Not Finished)
+- Pattern-Based Recoil System
+- Custom Recoil Pattern Editor
+- Blueprint Exposed API
+- Recoil Recovery and Compensation
+- Spread Recoil Component
 
-## 安装 | Installation
+## Installation
 
-1. 下载最新的插件文件  | Download the latest plugin file
-2. 将插件文件放入您的项目的`Plugins`文件夹中  | Put the plugin file into the `Plugins` folder of your project
-3. 向你的项目文件中添加插件依赖  | Add the plugin dependency to your project file
-4. 启动Unreal Editor并启用插件  | Launch Unreal Editor and enable the plugin
-5. 享受使用  | Enjoy using
+1. Get `CrystalRecoil.zip` from the [releases](https://github.com/Solessfir/CrystalRecoil/releases)
+2. Extract it into your project's `Plugins` folder.
+3. Enjoy!
 
-## 依赖/额外安装条件 | Dependencies/Extra Installation Conditions
+## Usage
 
-- 无  | None
+1. Add `CRRecoilComponent` to your Actor (Pawn, Weapon, etc.)
+2. Implement `ICRRecoilInterface` on the same Actor, overriding:
+   - `GetRecoilComponent` return the `CRRecoilComponent`
+   - `GetTargetController` return the `APlayerController` to apply recoil to
+3. Create a `CRRecoilPattern` Data Asset and configure the recoil pattern
+4. Set `CRRecoilPattern` in the `CRRecoilComponent` defaults
+   - Or call `UCRRecoilComponent::SetRecoilPattern` to assign the pattern at runtime
+5. On fire start: call `ICRRecoilInterface::StartShooting`
+6. On each shot: call `ICRRecoilInterface::ApplyShot`
+7. On fire end: call `ICRRecoilInterface::EndShooting`, but only if overridden. Does nothing by default.
 
-## 使用 | Usage
+## Recoil Pattern Behavior
 
-1. 为Actor添加组件`UCRRecoilComponent`(玩家Pawn, 枪械或者其他Actor都可以) | Add the component `UCRRecoilComponent` to an Actor (Player Pawn, FireArm or other Actor)
-2. 为拥有`CRRecoilComponent`的Actor实现接口`ICRRecoilInterface` | Implement the interface `ICRRecoilInterface` for the Actor that has the `CRRecoilComponent`
-3. 覆写函数`ICRRecoilInterface::GetRecoilComponent`，使其返回相应的后坐力组件 | Override the function `ICRRecoilInterface::GetRecoilComponent` to return the corresponding recoil component
-4. 覆写函数`ICRRecoilInterface::GetTargetController`，使其返回需要应用后坐力的玩家控制器 | Override the function `ICRRecoilInterface::GetTargetController` to return the player controller that needs to apply the recoil
-5. 创建资产`CRRecoilPattern`，并使用编辑器设置一个合适的后坐力行为 | Create an asset `CRRecoilPattern` and set a suitable recoil behavior in the editor
-6. 在合适的时候调用`UCRRecoilComponent::SetRecoilPattern`为后坐力组件设置后坐力模板 | Call `UCRRecoilComponent::SetRecoilPattern` to set the recoil pattern for the recoil component at the appropriate time
-7. 在每一次连射的开始调用`ICRRecoilInterface::StartShooting`，在每一枪射击后调用`ICRRecoilInterface::ApplyShot` | Call `ICRRecoilInterface::StartShooting` at the beginning of each burst(Usually every LMB pressed), and call `ICRRecoilInterface::ApplyShot` after each shot
+When the player shoots beyond the defined pattern length, `ERecoilBehaviorOnShotLimitReached` controls what happens:
 
-## 后坐力实现 | Recoil Implement Details
+- **RepeatLast** - Repeats the last shot's delta indefinitely (AK-47 style infinite climb)
+- **Stop** - Recoil stops, gun stabilizes at the last position (laser rifles, low-recoil weapons)
+- **RestartFromCustomIndex** - Loops back to a specific shot index. Use `0` to restart the full pattern, or a higher index to loop only the sustained fire phase
+- **Random** - Switches to procedural random recoil defined by `RandomizedRecoil` min/max ranges (LMGs, chaotic spray)
 
-插件模拟后坐力的方式是： | The way the plugin simulates recoil is:
+## Recoil Implementation Details
 
-首先根据模板中的坐标确定准星需要移动的矢量路程 | First, determine the vector distance the reticle needs to move based on the coordinates in the template
+**Uplift**<br>
+Delta rotation is calculated from the recoil pattern coordinates. Using kinematic equations *(v₀ = 2d/T, a = 2d/T²)*, an initial speed and deceleration are derived that guarantee the camera travels exactly that distance in exactly the configured uplift duration. The deceleration is applied each tick until the full recoil is consumed.
 
-然后使用在后坐力模板中写入的准星抬升时间和制动加速度计算所需的准星初速度 | Then calculate the initial velocity of the reticle required using the reticle rise time and braking acceleration written in the recoil template
+**Compensation**<br>
+Player input that opposes accumulated recoil (e.g., pulling down while gun kicks up) reduces the recovery debt in real-time, allowing players to manually control recoil.
 
-随后将初速度转换为角动量并施加，在过程中逐渐应用制动加速度直到准星到达预定位置 | Then convert the initial velocity to angular momentum and apply it, gradually applying the braking acceleration until the reticle reaches the predetermined position
+**Recovery**<br>
+After `RecoveryDelay`, the camera automatically returns toward the pre-shot position at a configurable speed and acceleration. Recovery can be canceled if the player makes large aiming movements (controlled by `RecoveryCancelThreshold`), allowing natural aim adjustments without fighting the system.
 
-## 额外信息 | Additional Information
+## Recoil Pattern Editor Shortcuts
 
-插件附带一个SpreadRecoilComponent，它可以用于在射击时添加随机的扩散效果。  | The plugin comes with a SpreadRecoilComponent, which can be used to add random spread effects when shooting.
+- **Shift+Click**: Add Unit
+- **Shift+S**: Toggle Snapping
+- **S**: Scale
+- **R**: Auto Rearrange
+- **F**: Zoom View to Fit
+- **H**: Toggle Shortcuts
 
-扩散效果基于三条`FRichCurve`曲线 | The spread effect is based on three `FRichCurve` curves
+## Recoil Spread Component
 
-`ShotToHeatCurve` - 定义了每一枪射击增加的热量 | Defines the heat added by each shot
+The plugin comes with a `UCRRecoilSpreadComponent`, which extends `UCRRecoilComponent` with a heat-based spread system.
+Since it inherits all base recoil functionality, you only need one component - use `UCRRecoilSpreadComponent` instead of
+`UCRRecoilComponent` if you want spread.
 
-`HeatToSpreadAngleCurve` - 定义了当前热量对应的扩散角度 | Defines the spread angle corresponding to the current heat
+The spread effect is driven by three curves configured in the editor:
 
-`HeatToCooldownPerSecondCurve` - 定义了当前热量下每秒冷却的热量 | Defines the heat that cools down per second under the current heat
+- `ShotToHeatCurve` - heat added per shot based on current heat
+- `HeatToSpreadAngleCurve` - spread angle corresponding to the current heat
+- `HeatToCooldownPerSecondCurve` - heat lost per second based on current heat
 
-三条曲线设置完成后，可以在开枪前计算射线时调用`UCRSpreadRecoilComponent::GetCurrentSpreadAngle`来获取当前的扩散角度 | After setting the three curves, you can call `UCRSpreadRecoilComponent::GetCurrentSpreadAngle` to get the current spread angle when calculating the ray before shooting
+Call `UCRRecoilSpreadComponent::GetCurrentSpreadAngle()` before each shot to get the current spread angle for projectile direction calculation.
 
-## 许可证 | License
+## License
 
-本插件使用MIT许可证  | This plugin is licensed under the MIT License
+This plugin is licensed under the MIT License

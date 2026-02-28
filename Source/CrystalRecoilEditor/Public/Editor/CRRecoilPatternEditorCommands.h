@@ -6,23 +6,31 @@
 #include "Framework/Commands/Commands.h"
 #include "Styling/AppStyle.h"
 
-/**
- * 
- */
-class FCRRecoilPatternEditorCommands: public TCommands<FCRRecoilPatternEditorCommands>
+class FCRRecoilPatternEditorCommands : public TCommands<FCRRecoilPatternEditorCommands>
 {
 public:
-	FCRRecoilPatternEditorCommands():TCommands<FCRRecoilPatternEditorCommands>("RecoilPatternEditorWidget", FText(), "", FAppStyle::GetAppStyleSetName()){}
+	FCRRecoilPatternEditorCommands() : TCommands("RecoilPatternEditorWidget", FText(), "", FAppStyle::GetAppStyleSetName())
+	{
+	}
+
 	virtual void RegisterCommands() override;
-	
-	TSharedPtr<FUICommandInfo> AddUnitUnderCursor;
+
 	TSharedPtr<FUICommandInfo> RemoveUnit;
+
 	TSharedPtr<FUICommandInfo> SelectAll;
+
 	TSharedPtr<FUICommandInfo> CopyUnits;
+
 	TSharedPtr<FUICommandInfo> PasteUnits;
-	//Toolbar
+
+	TSharedPtr<FUICommandInfo> ToggleShortcutsVisibility;
+
+	// Toolbar
 	TSharedPtr<FUICommandInfo> UnitsSnapping;
-	TSharedPtr<FUICommandInfo> ResetViewToOrigin;
+
+	TSharedPtr<FUICommandInfo> ZoomViewToFit;
+
 	TSharedPtr<FUICommandInfo> UnitScaling;
+
 	TSharedPtr<FUICommandInfo> AutoRearrangeUnits;
 };

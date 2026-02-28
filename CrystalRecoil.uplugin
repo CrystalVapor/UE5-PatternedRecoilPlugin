@@ -3,8 +3,8 @@
 	"Version": 1,
 	"VersionName": "1.0",
 	"FriendlyName": "CrystalRecoil",
-	"Description": "A plugin implements recoil pattern and spread, include an editor interface",
-	"Category": "Crystal",
+	"Description": "Pattern-based recoil system with a built-in Recoil Pattern Editor, runtime recovery and spread simulation.",
+	"Category": "Gameplay",
 	"CreatedBy": "",
 	"CreatedByURL": "",
 	"DocsURL": "",
@@ -24,6 +24,5 @@
 			"Type": "Editor",
 			"LoadingPhase": "Default"
 		}
-	],
-	"SupportURL": ""
+	]
 }

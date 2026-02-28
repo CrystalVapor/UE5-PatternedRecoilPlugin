@@ -3,10 +3,10 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "CRRecoilUnitGraph.h"
-#include "CRRecoilUnitGraphWidgetDragOperations.h"
 #include "Widgets/SCompoundWidget.h"
-
+#include "Misc/StringOutputDevice.h"
+#include "Data/CRRecoilUnitGraph.h"
+#include "Editor/CRRecoilUnitGraphWidgetDragOperations.h"
 #include "CRRecoilUnitGraphEditor.generated.h"
 
 class FCRRecoilUnitSelection;
@@ -24,11 +24,6 @@ namespace CrystalRecoilEditor
 		RecoilUnitNumbersLayer,
 		GridCoordinateLayer,
 	};
-
-	const FVector2d UnitDrawSize = FVector2d(30.f, 30.f);
-	const FVector2d UnitNumberDrawOffset = FVector2d(12.f, -12.f);
-	const FVector2d UnitNumberDrawSize = FVector2d(24.f, 24.f);
-	const FVector2d OriginDrawSize = FVector2d(16.f, 16.f);
 }
 
 class SCRRecoilUnitGraphBackgroundWidget;
@@ -38,92 +33,120 @@ USTRUCT()
 struct FCRRecoilUnitClipboardData
 {
 	GENERATED_BODY()
+
 	bool ImportFromString(const FString& ImportString)
 	{
 		FStringOutputDevice errors;
-		StaticStruct()->ImportText(*ImportString, this, nullptr, 0, &errors, FCRRecoilUnitClipboardData::StaticStruct()->GetName(), true);
+		StaticStruct()->ImportText(*ImportString, this, nullptr, 0, &errors, StaticStruct()->GetName(), true);
 		return errors.IsEmpty();
 	}
+
 	UPROPERTY()
-	TArray<FVector2D> RecoilUnitLocations;
+	TArray<FVector2f> RecoilUnitLocations;
 };
 
-/**
- * 
- */
 class CRYSTALRECOILEDITOR_API SCRRecoilUnitGraphWidget : public SCompoundWidget
 {
 public:
 	SLATE_BEGIN_ARGS(SCRRecoilUnitGraphWidget)
-		{
-		}
+	{
+	}
+
 	SLATE_ARGUMENT(FCRRecoilPatternEditor*, RecoilPatternEditor)
 	SLATE_END_ARGS()
+
 	enum EAxis
 	{
 		Axis_X,
 		Axis_Y
 	};
-	/** Constructs this widget with InArgs */
+
 	void Construct(const FArguments& InArgs);
-	void SetObject(UCRRecoilUnitGraph* InRecoilUnitGraph);
-	void RegisterCommands();
+
+	void SetRecoilUnitGraph(UCRRecoilUnitGraph* InRecoilUnitGraph);
 
 	// SWidget interface
 	virtual int32 OnPaint(const FPaintArgs& Args, const FGeometry& AllottedGeometry, const FSlateRect& MyCullingRect, FSlateWindowElementList& OutDrawElements, int32 LayerId, const FWidgetStyle& InWidgetStyle, bool bParentEnabled) const override;
-	virtual bool SupportsKeyboardFocus() const override { return true;}
+
+	virtual bool SupportsKeyboardFocus() const override { return true; }
+
 	virtual FReply OnMouseButtonDown(const FGeometry& MyGeometry, const FPointerEvent& MouseEvent) override;
+
 	virtual FReply OnMouseButtonUp(const FGeometry& MyGeometry, const FPointerEvent& MouseEvent) override;
+
 	virtual FReply OnMouseMove(const FGeometry& MyGeometry, const FPointerEvent& MouseEvent) override;
+
 	virtual FReply OnMouseWheel(const FGeometry& MyGeometry, const FPointerEvent& MouseEvent) override;
+
 	virtual void OnMouseLeave(const FPointerEvent& MouseEvent) override;
+
 	virtual FReply OnKeyUp(const FGeometry& MyGeometry, const FKeyEvent& InKeyEvent) override;
 	// End of SWidget interface
 
-	void DrawOrigin(FSlateWindowElementList& OutDrawElements, const FGeometry& AllottedGeometry, int32 BaseLayerID) const;
-	void DrawRecoilUnits(FSlateWindowElementList& OutDrawElements, const FGeometry& AllottedGeometry, int32 BaseLayerID) const;
-	void DrawGridAxisNumbers(FSlateWindowElementList& OutDrawElements, const FGeometry& AllottedGeometry, int32 BaseLayerID) const;
-	void DrawSingleGridAxisNumber(int32 LineIndex, float OffsetFromGraphOriginToWidgetCenter, EAxis Axis, const FSlateFontInfo& NumberFontInfo, const TSharedRef<
-		                              FSlateFontMeasure>& FontMeasure, int32 GridAxisStep, const FGeometry& AllottedGeometry, FSlateWindowElementList&
-	                              OutDrawElements, int32 BaseLayerID) const;
-	void DrawSelectionBox(FSlateWindowElementList& OutDrawElements, const FGeometry& AllottedGeometry, int32 BaseLayerID) const;
+	void DrawOrigin(FSlateWindowElementList& OutDrawElements, const FGeometry& AllottedGeometry, const int32 BaseLayerID) const;
 
-	void AddUnitUnderCursor();
-	void AddUnit(FVector2d RecoilLocation);
-	void SetViewPointToGraphOrigin();
-	void RearrangeUnits();
-	void CopySelectedUnits();
-	void PasteUnits();
-	void DeleteUnits();
+	void DrawRecoilUnits(FSlateWindowElementList& OutDrawElements, const FGeometry& AllottedGeometry, int32 BaseLayerID) const;
+
+	void DrawGridAxisNumbers(FSlateWindowElementList& OutDrawElements, const FGeometry& AllottedGeometry, const int32 BaseLayerID) const;
+
+	void DrawSingleGridAxisNumber(const int32 LineIndex, const float OffsetFromGraphOriginToWidgetCenter, const EAxis Axis, const FSlateFontInfo& NumberFontInfo, const TSharedRef<FSlateFontMeasure>& FontMeasure, const int32 GridAxisStep, const FGeometry& AllottedGeometry, FSlateWindowElementList& OutDrawElements, const int32 BaseLayerID) const;
+
+	void DrawSelectionBox(FSlateWindowElementList& OutDrawElements, const FGeometry& AllottedGeometry, const int32 BaseLayerID) const;
+
+	void AddUnitUnderCursor() const;
+
+	void AddUnit(const FVector2f& RecoilLocation) const;
+
+	void ZoomToFitAllUnits() const;
+
+	void CopySelectedUnits() const;
+
+	void PasteUnits() const;
+
+	void DeleteUnits() const;
+
 	void StartUnitScaling();
+
 	void StopUnitScaling();
 
 protected:
 	UCRRecoilUnitGraph* GetUnitGraph() const;
+
 	UCRRecoilPattern* GetRecoilPattern() const;
+
 	FCRRecoilUnitSelection& GetRecoilUnitSelection() const;
 
-	FVector2D RecoilCoordsToGraphCoords(FVector2D RecoilCoords) const;
-	FVector2D GraphCoordsToRecoilCoords(FVector2D GraphCoords) const;
-	
-	int32 FindUnitByScreenLocation(const FVector2D& ScreenLocation, const FGeometry& MyGeometry) const;
+	FVector2f RecoilCoordsToGraphCoords(FVector2f RecoilCoords) const;
 
-	void SelectUnitsInPanelCoordsRect(FSlateRect& SelectionRect);
+	FVector2f GraphCoordsToRecoilCoords(FVector2f GraphCoords) const;
+
+	int32 FindUnitByScreenLocation(const FVector2f& ScreenLocation) const;
+
+	void SelectUnitsInPanelCoordsRect(const FSlateRect& SelectionRect) const;
+
+	void TryAutoRearrangeUnits() const;
 
 	int32 ScaleFromRecoilCoordsToGraphCoords = 16;
 
-	bool bNeedResetViewToOrigin = true;
-	
-	UCRRecoilUnitGraph* RecoilUnitGraph = nullptr;
+	TWeakObjectPtr<UCRRecoilUnitGraph> RecoilUnitGraph;
+
 	FCRRecoilPatternEditor* RecoilPatternEditor = nullptr;
 
 	TSharedPtr<SCRRecoilUnitGraphBackgroundWidget> BackgroundWidget;
 
+	TSharedPtr<SVerticalBox> ShortcutsContainer;
+
 	TOptional<FCRUnitGraphViewDelayedDrag> ViewDrag;
+
 	TOptional<FCRUnitGraphSelectionDelayedDrag> SelectionDrag;
+
 	TOptional<FCRUnitGraphMoveUnitsDelayedDrag> MoveUnitsDrag;
+
 	TOptional<FCRUnitGraphScaleUnitsDelayedDrag> ScaleUnitsDrag;
 
 	int32 LastLeftMouseDownFoundUnitID = INDEX_NONE;
-	FVector2d CurrentMousePanelPosition;
+
+	FVector2f CurrentMousePanelPosition;
+
+	mutable bool bNeedZoomToFit = false;
 };

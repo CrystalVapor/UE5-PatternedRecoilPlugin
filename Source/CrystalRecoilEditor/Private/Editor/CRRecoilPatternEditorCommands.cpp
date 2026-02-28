@@ -1,18 +1,11 @@
 ﻿// Copyright CrystalVapor 2024, All rights reserved.
 
-
-#include "CRRecoilPatternEditorCommands.h"
+#include "Editor/CRRecoilPatternEditorCommands.h"
 
 #define LOCTEXT_NAMESPACE "CrystalRecoil"
 
 void FCRRecoilPatternEditorCommands::RegisterCommands()
 {
-	UI_COMMAND(AddUnitUnderCursor,
-		"Add Unit Under Cursor",
-		"Add a new recoil unit under cursor",
-		EUserInterfaceActionType::Button,
-		FInputChord(EKeys::N, false, false, false, false));
-
 	UI_COMMAND(RemoveUnit,
 		"Remove Unit",
 		"Remove the selected recoil unit",
@@ -43,11 +36,11 @@ void FCRRecoilPatternEditorCommands::RegisterCommands()
 		EUserInterfaceActionType::ToggleButton,
 		FInputChord(EKeys::S, true, false, false, false));
 
-	UI_COMMAND(ResetViewToOrigin,
-		"Reset View Point",
-		"Reset View Point to Origin",
+	UI_COMMAND(ZoomViewToFit,
+		"Zoom View to Fit",
+		"Zoom View to Fit All Units",
 		EUserInterfaceActionType::Button,
-		FInputChord(EKeys::O, false, false, false, false));
+		FInputChord(EKeys::F, false, false, false, false));
 
 	UI_COMMAND(UnitScaling,
 		"Unit Scaling",
@@ -60,6 +53,12 @@ void FCRRecoilPatternEditorCommands::RegisterCommands()
 		"Auto Rearrange Units",
 		EUserInterfaceActionType::ToggleButton,
 		FInputChord(EKeys::R, false, false, false, false));
+
+	UI_COMMAND(ToggleShortcutsVisibility,
+		"Toggle Shortcuts",
+		"Show/Hide keyboard shortcuts",
+		EUserInterfaceActionType::ToggleButton,
+		FInputChord(EKeys::H, false, false, false, false));
 }
 
 #undef LOCTEXT_NAMESPACE

@@ -1,7 +1,6 @@
-﻿#include "CRAssetTypeActions_RecoilPattern.h"
-
-#include "CRRecoilPattern.h"
-#include "CRRecoilPatternEditor.h"
+﻿#include "AssetTools/CRAssetTypeActions_RecoilPattern.h"
+#include "Data/CRRecoilPattern.h"
+#include "Editor/CRRecoilPatternEditor.h"
 
 FText FCRAssetTypeActions_RecoilPattern::GetName() const
 {
@@ -23,11 +22,11 @@ UClass* FCRAssetTypeActions_RecoilPattern::GetSupportedClass() const
 	return UCRRecoilPattern::StaticClass();
 }
 
-void FCRAssetTypeActions_RecoilPattern::OpenAssetEditor(const TArray<UObject*>& InObjects,
-	TSharedPtr<IToolkitHost> EditWithinLevelEditor)
+void FCRAssetTypeActions_RecoilPattern::OpenAssetEditor(const TArray<UObject*>& InObjects, TSharedPtr<IToolkitHost> EditWithinLevelEditor)
 {
-	EToolkitMode::Type Mode = EditWithinLevelEditor.IsValid() ? EToolkitMode::WorldCentric : EToolkitMode::Standalone;
-	for (auto Object : InObjects)
+	const EToolkitMode::Type Mode = EditWithinLevelEditor.IsValid() ? EToolkitMode::WorldCentric : EToolkitMode::Standalone;
+
+	for (UObject* Object : InObjects)
 	{
 		if (UCRRecoilPattern* RecoilPattern = Cast<UCRRecoilPattern>(Object))
 		{

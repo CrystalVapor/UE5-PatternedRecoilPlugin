@@ -1,28 +1,29 @@
 ﻿// Copyright CrystalVapor 2024, All rights reserved.
 
-
-#include "CRRecoilInterface.h"
-
-#include "CRRecoilComponent.h"
-
+#include "Data/CRRecoilInterface.h"
+#include "Components/CRRecoilComponent.h"
 
 void ICRRecoilInterface::StartShooting()
 {
-	// Strange... if you write these two line in the same line, it will not work.
-	// split to a definition and a call will work....
-	UCRRecoilComponent* RecoilComponent = Execute_K2_GetRecoilComponent(Cast<UObject>(this));
-	RecoilComponent->StartNewRecoilSequence();
+	// Cast<UObject>(this) on an interface pointer produces a temporary with an uncertain lifetime.
+	// Storing it in a named variable first ensures it stays alive for the duration of the Execute_ call.
+	// Writing this as a one-liner causes the temporary to be destroyed too early, resulting in a crash.
+	if (UCRRecoilComponent* RecoilComponent = Execute_K2_GetRecoilComponent(Cast<UObject>(this)))
+	{
+		RecoilComponent->StartShooting();
+	}
 }
 
 void ICRRecoilInterface::EndShooting()
 {
-	UCRRecoilComponent* RecoilComponent = Execute_K2_GetRecoilComponent(Cast<UObject>(this));
 }
 
 void ICRRecoilInterface::ApplyShot()
 {
-	UCRRecoilComponent* RecoilComponent = Execute_K2_GetRecoilComponent(Cast<UObject>(this));
-	RecoilComponent->ApplyShot();
+	if (UCRRecoilComponent* RecoilComponent = Execute_K2_GetRecoilComponent(Cast<UObject>(this)))
+	{
+		RecoilComponent->ApplyShot();
+	}
 }
 
 void ICRRecoilInterface::K2_StartShooting_Implementation()
