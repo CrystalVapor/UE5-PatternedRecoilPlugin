@@ -2,51 +2,6 @@
 
 #include "Data/CRRecoilUnitGraph.h"
 
-FCRRecoilUnit UCRRecoilUnitGraph::CreateNewUnit(const FVector2f& RecoilUnitLocation)
-{
-	return FCRRecoilUnit(NextID++, RecoilUnitLocation);
-}
-
-int32 UCRRecoilUnitGraph::AddUnit(const FVector2f& RecoilUnitLocation)
-{
-	RecoilUnits.Add(FCRRecoilUnit(NextID++, RecoilUnitLocation));
-	OnUnitAdded.Broadcast(NextID - 1);
-	return NextID - 1;
-}
-
-void UCRRecoilUnitGraph::InsertUnit(const FCRRecoilUnit& RecoilUnit, const int32 Index)
-{
-	RecoilUnits.Insert(RecoilUnit, Index);
-	OnUnitAdded.Broadcast(RecoilUnit.ID);
-}
-
-void UCRRecoilUnitGraph::RemoveAt(const int32 Index)
-{
-	OnUnitRemoved.Broadcast(RecoilUnits[Index].ID);
-	RecoilUnits.RemoveAt(Index);
-
-	if (RecoilUnits.Num() == 0)
-	{
-		NextID = 0;
-	}
-}
-
-void UCRRecoilUnitGraph::Empty()
-{
-	RecoilUnits.Empty();
-	NextID = 0;
-}
-
-FVector2f UCRRecoilUnitGraph::GetUnitPositionAt(const int32 Index)
-{
-	return GetUnitAt(Index).Position;
-}
-
-FCRRecoilUnit& UCRRecoilUnitGraph::GetUnitAt(const int32 Index)
-{
-	return RecoilUnits[Index];
-}
-
 const FCRRecoilUnit& UCRRecoilUnitGraph::GetUnitAt(const int32 Index) const
 {
 	return RecoilUnits[Index];
@@ -57,9 +12,35 @@ int32 UCRRecoilUnitGraph::GetUnitCount() const
 	return RecoilUnits.Num();
 }
 
+#if WITH_EDITOR
+FCRRecoilUnit UCRRecoilUnitGraph::CreateNewUnit(const FVector2f& RecoilUnitLocation)
+{
+	return FCRRecoilUnit(NextID++, RecoilUnitLocation);
+}
+
+int32 UCRRecoilUnitGraph::AddUnit(const FVector2f& RecoilUnitLocation)
+{
+	RecoilUnits.Add(FCRRecoilUnit(NextID++, RecoilUnitLocation));
+	return NextID - 1;
+}
+
+void UCRRecoilUnitGraph::InsertUnit(const FCRRecoilUnit& RecoilUnit, const int32 Index)
+{
+	RecoilUnits.Insert(RecoilUnit, Index);
+}
+
+void UCRRecoilUnitGraph::RemoveAt(const int32 Index)
+{
+	RecoilUnits.RemoveAt(Index);
+
+	if (RecoilUnits.Num() == 0)
+	{
+		NextID = 0;
+	}
+}
+
 void UCRRecoilUnitGraph::RemoveUnitByID(uint32 ID)
 {
-	OnUnitRemoved.Broadcast(ID);
 	RecoilUnits.RemoveAll([ID](const FCRRecoilUnit& Unit) { return Unit.ID == ID; });
 
 	if (RecoilUnits.Num() == 0)
@@ -80,17 +61,11 @@ TArray<FCRRecoilUnit>& UCRRecoilUnitGraph::GetRecoilUnits()
 
 void UCRRecoilUnitGraph::RearrangeID()
 {
-	for (const auto& RecoilUnit : RecoilUnits)
-	{
-		OnUnitRemoved.Broadcast(RecoilUnit.ID);
-	}
-
 	NextID = 0;
 
 	for (auto& RecoilUnit : RecoilUnits)
 	{
 		RecoilUnit.ID = NextID++;
-		OnUnitAdded.Broadcast(RecoilUnit.ID);
 	}
 }
 
@@ -115,7 +90,6 @@ void UCRRecoilUnitGraph::RearrangeUnits()
 	});
 }
 
-#if WITH_EDITOR
 void UCRRecoilUnitGraph::PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent)
 {
 	Super::PostEditChangeProperty(PropertyChangedEvent);
