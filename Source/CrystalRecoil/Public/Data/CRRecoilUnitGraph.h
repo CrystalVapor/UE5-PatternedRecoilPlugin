@@ -61,14 +61,17 @@ struct FCRRecoilUnit
 	FVector2f Position;
 };
 
-DECLARE_MULTICAST_DELEGATE_OneParam(FCRRecoilUnitChangedDelegate, int32 /* Index */)
-
 UCLASS()
 class CRYSTALRECOIL_API UCRRecoilUnitGraph : public UObject
 {
 	GENERATED_BODY()
 
 public:
+	const FCRRecoilUnit& GetUnitAt(const int32 Index) const;
+
+	int32 GetUnitCount() const;
+
+	#if WITH_EDITOR
 	FCRRecoilUnit CreateNewUnit(const FVector2f& RecoilUnitLocation);
 
 	int32 AddUnit(const FVector2f& RecoilUnitLocation);
@@ -76,16 +79,6 @@ public:
 	void InsertUnit(const FCRRecoilUnit& RecoilUnit, const int32 Index);
 
 	void RemoveAt(const int32 Index);
-
-	void Empty();
-
-	FVector2f GetUnitPositionAt(const int32 Index);
-
-	FCRRecoilUnit& GetUnitAt(const int32 Index);
-
-	const FCRRecoilUnit& GetUnitAt(const int32 Index) const;
-
-	int32 GetUnitCount() const;
 
 	void RemoveUnitByID(uint32 ID);
 
@@ -99,10 +92,10 @@ public:
 	// Sort the units by the sort policy
 	void RearrangeUnits();
 
-	FCRRecoilUnitChangedDelegate OnUnitRemoved;
+	virtual void PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent) override;
+	#endif
 
-	FCRRecoilUnitChangedDelegate OnUnitAdded;
-
+	#if WITH_EDITORONLY_DATA
 	UPROPERTY(EditAnywhere, Transient, NonTransactional, Category = "Editor Graph")
 	bool bDrawUnitNumbers = true;
 
@@ -128,9 +121,6 @@ public:
 	*/
 	UPROPERTY(EditAnywhere, NonTransactional, Category = "Recoil Pattern")
 	ECRRecoilUnitGraphRearrangePolicy RearrangePolicy = ECRRecoilUnitGraphRearrangePolicy::AscendByY;
-
-	#if WITH_EDITOR
-	virtual void PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent) override;
 	#endif
 
 protected:
@@ -138,6 +128,8 @@ protected:
 	UPROPERTY(EditAnywhere, Category = "Recoil Pattern")
 	TArray<FCRRecoilUnit> RecoilUnits;
 
+	#if WITH_EDITORONLY_DATA
 	UPROPERTY()
 	uint32 NextID = 0;
+	#endif
 };

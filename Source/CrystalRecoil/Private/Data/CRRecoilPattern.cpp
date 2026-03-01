@@ -31,9 +31,9 @@ FVector2f UCRRecoilPattern::ConsumeShot(int32& ShotIndex) const
 			case ERecoilPatternEndBehavior::RepeatLast:
 			{
 				const int32 MaxIndex = GetMaxShotIndex();
-				const FVector2f Current  = RecoilUnitGraph->GetUnitPositionAt(MaxIndex);
-				const FVector2f Previous = MaxIndex > 0 ? RecoilUnitGraph->GetUnitPositionAt(MaxIndex - 1) : FVector2f::ZeroVector;
-				return Current - Previous;
+				const FVector2f CurrentPosition = RecoilUnitGraph->GetUnitAt(MaxIndex).Position;
+				const FVector2f PreviousPosition = MaxIndex > 0 ? RecoilUnitGraph->GetUnitAt(MaxIndex - 1).Position : FVector2f::ZeroVector;
+				return CurrentPosition - PreviousPosition;
 			}
 			case ERecoilPatternEndBehavior::RestartFromCustomIndex:
 			{
@@ -53,10 +53,10 @@ FVector2f UCRRecoilPattern::ConsumeShot(int32& ShotIndex) const
 	}
 
 	// Normal path (and RestartFromCustomIndex after reset): consume this shot and advance the index
-	const FVector2f Current = RecoilUnitGraph->GetUnitPositionAt(ShotIndex);
-	const FVector2f Previous = ShotIndex > 0 ? RecoilUnitGraph->GetUnitPositionAt(ShotIndex - 1) : FVector2f::ZeroVector;
+	const FVector2f CurrentPosition = RecoilUnitGraph->GetUnitAt(ShotIndex).Position;
+	const FVector2f PreviousPosition = ShotIndex > 0 ? RecoilUnitGraph->GetUnitAt(ShotIndex - 1).Position : FVector2f::ZeroVector;
 	++ShotIndex;
-	return Current - Previous;
+	return CurrentPosition - PreviousPosition;
 }
 
 int32 UCRRecoilPattern::GetMaxShotIndex() const
