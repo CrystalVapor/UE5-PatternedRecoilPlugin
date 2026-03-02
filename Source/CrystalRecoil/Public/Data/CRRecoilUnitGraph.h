@@ -1,4 +1,4 @@
-﻿// Copyright CrystalVapor 2024, All rights reserved.
+﻿// Copyright CrystalVapor 2026, All rights reserved.
 
 #pragma once
 
@@ -72,24 +72,14 @@ public:
 	int32 GetUnitCount() const;
 
 	#if WITH_EDITOR
-	FCRRecoilUnit CreateNewUnit(const FVector2f& RecoilUnitLocation);
-
 	int32 AddUnit(const FVector2f& RecoilUnitLocation);
 
-	void InsertUnit(const FCRRecoilUnit& RecoilUnit, const int32 Index);
-
-	void RemoveAt(const int32 Index);
-
-	void RemoveUnitByID(uint32 ID);
+	void RemoveUnit(const uint32 ID);
 
 	FCRRecoilUnit* GetUnitByID(uint32 ID);
 
 	TArray<FCRRecoilUnit>& GetRecoilUnits();
 
-	// Rearrange the ID of the units
-	void RearrangeID();
-
-	// Sort the units by the sort policy
 	void RearrangeUnits();
 
 	virtual void PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent) override;

@@ -1,8 +1,7 @@
-﻿// Copyright CrystalVapor 2024, All rights reserved.
+﻿// Copyright CrystalVapor 2026, All rights reserved.
 
 #include "AssetTools/CRRecoilPatternFactory.h"
 #include "Data/CRRecoilPattern.h"
-#include "Data/CRRecoilUnitGraph.h"
 
 UCRRecoilPatternFactory::UCRRecoilPatternFactory()
 {
@@ -13,16 +12,16 @@ UCRRecoilPatternFactory::UCRRecoilPatternFactory()
 
 UObject* UCRRecoilPatternFactory::FactoryCreateNew(UClass* InClass, UObject* InParent, FName InName, EObjectFlags Flags, UObject* Context, FFeedbackContext* Warn, FName CallingContext)
 {
-	const auto RecoilPattern = NewObject<UCRRecoilPattern>(InParent, InClass, InName, Flags);
-	const auto UnitGraph = RecoilPattern->GetUnitGraph();
-	check(UnitGraph != nullptr);
-	UnitGraph->AddUnit(FVector2f(0.2f, 1.f));
-	UnitGraph->AddUnit(FVector2f(0.45f, 2.55f));
-	UnitGraph->AddUnit(FVector2f(1.2f, 4.05f));
-	return RecoilPattern;
+	check(InClass->IsChildOf(UCRRecoilPattern::StaticClass()));
+	return NewObject<UCRRecoilPattern>(InParent, InClass, InName, Flags);
+}
+
+FString UCRRecoilPatternFactory::GetDefaultNewAssetName() const
+{
+	return FString("RP_WeaponPattern");
 }
 
 FText UCRRecoilPatternFactory::GetToolTip() const
 {
-	return NSLOCTEXT("CrystalRecoil", "RecoilPatternFactoryToolTip", "Optimized Recoil Pattern for shooting");
+	return NSLOCTEXT("CrystalRecoil", "RecoilPatternFactoryToolTip", "Weapon Recoil Pattern Asset");
 }

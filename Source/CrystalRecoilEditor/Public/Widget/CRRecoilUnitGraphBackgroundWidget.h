@@ -1,4 +1,4 @@
-﻿// Copyright CrystalVapor 2024, All rights reserved.
+﻿// Copyright CrystalVapor 2026, All rights reserved.
 
 #pragma once
 
@@ -7,7 +7,7 @@
 
 struct FCRZoomLevelEntry
 {
-	FCRZoomLevelEntry(const float InZoomAmount, const FText& InDisplayText, const EGraphRenderingLOD::Type InLOD)
+	explicit FCRZoomLevelEntry(const float InZoomAmount, const FText& InDisplayText, const EGraphRenderingLOD::Type InLOD)
 		: DisplayText(FText::Format(NSLOCTEXT("GraphEditor", "Zoom", "Zoom {0}"), InDisplayText))
 		, ZoomAmount(InZoomAmount)
 		, LOD(InLOD)
@@ -44,10 +44,7 @@ private:
 class CRYSTALRECOILEDITOR_API SCRRecoilUnitGraphBackgroundWidget : public SNodePanel
 {
 public:
-	SLATE_BEGIN_ARGS(SCRRecoilUnitGraphBackgroundWidget)
-	{
-	}
-
+	SLATE_BEGIN_ARGS(SCRRecoilUnitGraphBackgroundWidget){}
 	SLATE_END_ARGS()
 
 	void Construct(const FArguments& InArgs);

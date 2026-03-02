@@ -1,4 +1,4 @@
-﻿// Copyright CrystalVapor 2024, All rights reserved.
+﻿// Copyright CrystalVapor 2026, All rights reserved.
 
 #pragma once
 
@@ -9,7 +9,8 @@
 class FCRRecoilPatternEditorCommands : public TCommands<FCRRecoilPatternEditorCommands>
 {
 public:
-	FCRRecoilPatternEditorCommands() : TCommands("RecoilPatternEditorWidget", FText(), "", FAppStyle::GetAppStyleSetName())
+	FCRRecoilPatternEditorCommands()
+		: TCommands(FName("RecoilPatternEditorWidget"), FText::GetEmpty(), NAME_None, FAppStyle::GetAppStyleSetName())
 	{
 	}
 
