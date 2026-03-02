@@ -1,4 +1,4 @@
-﻿// Copyright CrystalVapor 2024, All rights reserved.
+﻿// Copyright CrystalVapor 2026, All rights reserved.
 
 #include "Data/CRRecoilUnitGraph.h"
 
@@ -13,33 +13,13 @@ int32 UCRRecoilUnitGraph::GetUnitCount() const
 }
 
 #if WITH_EDITOR
-FCRRecoilUnit UCRRecoilUnitGraph::CreateNewUnit(const FVector2f& RecoilUnitLocation)
-{
-	return FCRRecoilUnit(NextID++, RecoilUnitLocation);
-}
-
 int32 UCRRecoilUnitGraph::AddUnit(const FVector2f& RecoilUnitLocation)
 {
 	RecoilUnits.Add(FCRRecoilUnit(NextID++, RecoilUnitLocation));
 	return NextID - 1;
 }
 
-void UCRRecoilUnitGraph::InsertUnit(const FCRRecoilUnit& RecoilUnit, const int32 Index)
-{
-	RecoilUnits.Insert(RecoilUnit, Index);
-}
-
-void UCRRecoilUnitGraph::RemoveAt(const int32 Index)
-{
-	RecoilUnits.RemoveAt(Index);
-
-	if (RecoilUnits.Num() == 0)
-	{
-		NextID = 0;
-	}
-}
-
-void UCRRecoilUnitGraph::RemoveUnitByID(uint32 ID)
+void UCRRecoilUnitGraph::RemoveUnit(const uint32 ID)
 {
 	RecoilUnits.RemoveAll([ID](const FCRRecoilUnit& Unit) { return Unit.ID == ID; });
 
@@ -57,16 +37,6 @@ FCRRecoilUnit* UCRRecoilUnitGraph::GetUnitByID(uint32 ID)
 TArray<FCRRecoilUnit>& UCRRecoilUnitGraph::GetRecoilUnits()
 {
 	return RecoilUnits;
-}
-
-void UCRRecoilUnitGraph::RearrangeID()
-{
-	NextID = 0;
-
-	for (auto& RecoilUnit : RecoilUnits)
-	{
-		RecoilUnit.ID = NextID++;
-	}
 }
 
 void UCRRecoilUnitGraph::RearrangeUnits()
@@ -134,6 +104,8 @@ void UCRRecoilUnitGraph::PostEditChangeProperty(FPropertyChangedEvent& PropertyC
 				NextID = Unit.ID + 1;
 			}
 		}
+
+		RearrangeUnits();
 	}
 }
 #endif

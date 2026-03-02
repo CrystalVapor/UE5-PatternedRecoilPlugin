@@ -1,10 +1,12 @@
-﻿// Copyright CrystalVapor 2024, All rights reserved.
+﻿// Copyright CrystalVapor 2026, All rights reserved.
 
 #include "Widget/CRRecoilUnitGraphEditor.h"
 #include "Data/CRRecoilPattern.h"
+#include "Data/CRRecoilUnitGraph.h"
 #include "Editor/CRRecoilPatternEditor.h"
 #include "Fonts/FontMeasure.h"
 #include "Widget/CRRecoilUnitGraphBackgroundWidget.h"
+#include "Misc/StringOutputDevice.h"
 #include "HAL/PlatformApplicationMisc.h"
 
 void SCRRecoilUnitGraphWidget::Construct(const FArguments& InArgs)
@@ -492,28 +494,28 @@ void SCRRecoilUnitGraphWidget::DrawGridAxisNumbers(FSlateWindowElementList& OutD
 	const FSlateFontInfo NumberFontInfo = FCoreStyle::GetDefaultFontStyle("Regular", 10);
 
 	// Draw Center
-	DrawSingleGridAxisNumber(0, GraphOriginViewOffset.X, Axis_X, NumberFontInfo, FontMeasure, GridAxisStep, AllottedGeometry, OutDrawElements, BaseLayerID);
-	DrawSingleGridAxisNumber(0, GraphOriginViewOffset.Y, Axis_Y, NumberFontInfo, FontMeasure, GridAxisStep, AllottedGeometry, OutDrawElements, BaseLayerID);
+	DrawSingleGridAxisNumber(0, GraphOriginViewOffset.X, true, NumberFontInfo, FontMeasure, GridAxisStep, AllottedGeometry, OutDrawElements, BaseLayerID);
+	DrawSingleGridAxisNumber(0, GraphOriginViewOffset.Y, false, NumberFontInfo, FontMeasure, GridAxisStep, AllottedGeometry, OutDrawElements, BaseLayerID);
 
 	// Draw Others
 	for (int32 Index = 1; Index <= TotalDrawnGridLines; ++Index)
 	{
-		DrawSingleGridAxisNumber(Index, GraphOriginViewOffset.X, Axis_X, NumberFontInfo, FontMeasure, GridAxisStep, AllottedGeometry, OutDrawElements, BaseLayerID);
-		DrawSingleGridAxisNumber(-Index, GraphOriginViewOffset.X, Axis_X, NumberFontInfo, FontMeasure, GridAxisStep, AllottedGeometry, OutDrawElements, BaseLayerID);
-		DrawSingleGridAxisNumber(Index, GraphOriginViewOffset.Y, Axis_Y, NumberFontInfo, FontMeasure, GridAxisStep, AllottedGeometry, OutDrawElements, BaseLayerID);
-		DrawSingleGridAxisNumber(-Index, GraphOriginViewOffset.Y, Axis_Y, NumberFontInfo, FontMeasure, GridAxisStep, AllottedGeometry, OutDrawElements, BaseLayerID);
+		DrawSingleGridAxisNumber(Index, GraphOriginViewOffset.X, true, NumberFontInfo, FontMeasure, GridAxisStep, AllottedGeometry, OutDrawElements, BaseLayerID);
+		DrawSingleGridAxisNumber(-Index, GraphOriginViewOffset.X, true, NumberFontInfo, FontMeasure, GridAxisStep, AllottedGeometry, OutDrawElements, BaseLayerID);
+		DrawSingleGridAxisNumber(Index, GraphOriginViewOffset.Y, false, NumberFontInfo, FontMeasure, GridAxisStep, AllottedGeometry, OutDrawElements, BaseLayerID);
+		DrawSingleGridAxisNumber(-Index, GraphOriginViewOffset.Y, false, NumberFontInfo, FontMeasure, GridAxisStep, AllottedGeometry, OutDrawElements, BaseLayerID);
 	}
 }
 
-void SCRRecoilUnitGraphWidget::DrawSingleGridAxisNumber(const int32 LineIndex, const float OffsetFromGraphOriginToWidgetCenter, const EAxis Axis, const FSlateFontInfo& NumberFontInfo, const TSharedRef<FSlateFontMeasure>& FontMeasure, const int32 GridAxisStep, const FGeometry& AllottedGeometry, FSlateWindowElementList& OutDrawElements, const int32 BaseLayerID) const
+void SCRRecoilUnitGraphWidget::DrawSingleGridAxisNumber(const int32 LineIndex, const float OffsetFromGraphOriginToWidgetCenter, const bool bXAxis, const FSlateFontInfo& NumberFontInfo, const TSharedRef<FSlateFontMeasure>& FontMeasure, const int32 GridAxisStep, const FGeometry& AllottedGeometry, FSlateWindowElementList& OutDrawElements, const int32 BaseLayerID) const
 {
 	const int32 GridLineNumberOffsetFromGraphCenter = FMath::FloorToInt(OffsetFromGraphOriginToWidgetCenter / ScaleFromRecoilCoordsToGraphCoords / GridAxisStep) * GridAxisStep;
 	const int32 GridLineNumber = LineIndex * GridAxisStep + GridLineNumberOffsetFromGraphCenter;
 
-	const FVector2d GridLineNumberGraphCoords = Axis == Axis_X ? FVector2d(GridLineNumber * ScaleFromRecoilCoordsToGraphCoords, 0.f) : FVector2d(0.f, GridLineNumber * ScaleFromRecoilCoordsToGraphCoords);
+	const FVector2d GridLineNumberGraphCoords = bXAxis ? FVector2d(GridLineNumber * ScaleFromRecoilCoordsToGraphCoords, 0.f) : FVector2d(0.f, GridLineNumber * ScaleFromRecoilCoordsToGraphCoords);
 	FVector2f GridLineNumberPanelCoords = BackgroundWidget->GraphCoordToPanelCoord(GridLineNumberGraphCoords);
 
-	if (Axis == Axis_X)
+	if (bXAxis)
 	{
 		GridLineNumberPanelCoords.Y = 0.f;
 	}
@@ -532,12 +534,12 @@ void SCRRecoilUnitGraphWidget::DrawSingleGridAxisNumber(const int32 LineIndex, c
 
 	// Negate Y-axis numbers so positive values appear at the top (like a math graph),
 	// making upward recoil display as positive values instead of using screen coordinates
-	const FString GridTickText = Axis == Axis_Y ? FString::FromInt(-GridLineNumber) : FString::FromInt(GridLineNumber);
+	const FString GridTickText = bXAxis ? FString::FromInt(GridLineNumber) : FString::FromInt(-GridLineNumber);
 	const FLinearColor GridTickTextColor = GridLineNumber == 0 ? FLinearColor::White : FLinearColor::White.CopyWithNewOpacity(0.65f);
 	const FVector2d GridTickTextSize = FontMeasure->Measure(GridTickText, NumberFontInfo);
 	FVector2f GridTickDrawnPosition = GridLineNumberPanelCoords;
 
-	if (Axis == Axis_X)
+	if (bXAxis)
 	{
 		GridTickDrawnPosition.X -= GridTickTextSize.X * 0.5f;
 	}
@@ -633,7 +635,7 @@ void SCRRecoilUnitGraphWidget::DeleteUnits() const
 
 	for (int32 Index = 0; Index < UnitSelectionCount; ++Index)
 	{
-		CurrentRecoilUnitGraph->RemoveUnitByID(SelectedUnitIDs[Index]);
+		CurrentRecoilUnitGraph->RemoveUnit(SelectedUnitIDs[Index]);
 	}
 
 	CurrentUnitSelection.ClearSelection();
@@ -745,4 +747,11 @@ void SCRRecoilUnitGraphWidget::TryAutoRearrangeUnits() const
 	{
 		RecoilUnitGraph->RearrangeUnits();
 	}
+}
+
+bool FCRRecoilUnitClipboardData::ImportFromString(const FString& ImportString)
+{
+	FStringOutputDevice Errors;
+	StaticStruct()->ImportText(*ImportString, this, nullptr, 0, &Errors, StaticStruct()->GetName(), true);
+	return Errors.IsEmpty();
 }

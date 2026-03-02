@@ -1,4 +1,4 @@
-﻿// Copyright CrystalVapor 2024, All rights reserved.
+﻿// Copyright CrystalVapor 2026, All rights reserved.
 
 #include "Editor/CRRecoilPatternEditor.h"
 #include "Data/CRRecoilPattern.h"
@@ -83,7 +83,7 @@ FCRRecoilPatternEditor::FCRRecoilPatternEditor()
 	RecoilUnitSelection.OnSelectionChanged.AddRaw<FCRRecoilPatternEditor>(this, &FCRRecoilPatternEditor::OnSelectionChanged);
 }
 
-TSharedRef<FCRRecoilPatternEditor> FCRRecoilPatternEditor::CreateRecoilPatternEditor(EToolkitMode::Type Mode, const TSharedPtr<IToolkitHost>& InitToolkitHost, UCRRecoilPattern* RecoilPattern)
+TSharedRef<FCRRecoilPatternEditor> FCRRecoilPatternEditor::CreateRecoilPatternEditor(const EToolkitMode::Type Mode, const TSharedPtr<IToolkitHost>& InitToolkitHost, UCRRecoilPattern* RecoilPattern)
 {
 	TSharedRef<FCRRecoilPatternEditor> RecoilPatternEditor = MakeShareable(new FCRRecoilPatternEditor());
 	RecoilPatternEditor->InitializeEditor(Mode, InitToolkitHost, RecoilPattern);
@@ -97,12 +97,12 @@ FName FCRRecoilPatternEditor::GetToolkitFName() const
 
 FText FCRRecoilPatternEditor::GetBaseToolkitName() const
 {
-	return NSLOCTEXT("CrystalRecoil", "RecoilPatternEditorAppLabel", "RecoilPatternEditor");
+	return NSLOCTEXT("CrystalRecoil", "RecoilPatternEditorAppLabel", "Recoil Pattern Editor");
 }
 
 FString FCRRecoilPatternEditor::GetWorldCentricTabPrefix() const
 {
-	return NSLOCTEXT("CrystalRecoil", "WorldCentricTabPrefix", "RecoilPattern").ToString();
+	return FString("Recoil Pattern Editor");
 }
 
 FLinearColor FCRRecoilPatternEditor::GetWorldCentricTabColorScale() const
@@ -168,56 +168,70 @@ void FCRRecoilPatternEditor::MapCommands()
 	const FCRRecoilPatternEditorCommands& Commands = FCRRecoilPatternEditorCommands::Get();
 	const TSharedRef<FUICommandList> EditorCommands = GetToolkitCommands();
 
-	EditorCommands->MapAction(
+	EditorCommands->MapAction
+	(
 		Commands.RemoveUnit,
 		FExecuteAction::CreateRaw(this, &FCRRecoilPatternEditor::Command_RemoveUnit),
-		FCanExecuteAction::CreateLambda([&]() { return !RecoilUnitSelection.IsEmpty(); }));
+		FCanExecuteAction::CreateLambda([this]() { return !RecoilUnitSelection.IsEmpty(); })
+	);
 
-	EditorCommands->MapAction(
+	EditorCommands->MapAction
+	(
 		Commands.SelectAll,
 		FExecuteAction::CreateRaw(this, &FCRRecoilPatternEditor::Command_SelectAll),
-		FCanExecuteAction::CreateLambda([]() { return true; }));
+		FCanExecuteAction::CreateLambda([]() { return true; })
+	);
 
-	EditorCommands->MapAction(
+	EditorCommands->MapAction
+	(
 		Commands.CopyUnits,
 		FExecuteAction::CreateRaw(this, &FCRRecoilPatternEditor::Command_CopyUnits),
-		FCanExecuteAction::CreateLambda([&]() { return !RecoilUnitSelection.IsEmpty(); }));
+		FCanExecuteAction::CreateLambda([this]() { return !RecoilUnitSelection.IsEmpty(); })
+	);
 
-	EditorCommands->MapAction(
+	EditorCommands->MapAction
+	(
 		Commands.PasteUnits,
 		FExecuteAction::CreateRaw(this, &FCRRecoilPatternEditor::Command_PasteUnits),
-		FCanExecuteAction::CreateLambda([]() { return true; }));
+		FCanExecuteAction::CreateLambda([]() { return true; })
+	);
 
-	EditorCommands->MapAction(
+	EditorCommands->MapAction
+	(
 		Commands.UnitsSnapping,
 		FExecuteAction::CreateRaw(this, &FCRRecoilPatternEditor::Command_SwitchUnitSnapping),
 		FCanExecuteAction::CreateLambda([]() { return true; }),
-		FIsActionChecked::CreateLambda([&]() { return bEnableGridSnapping; })
+		FIsActionChecked::CreateLambda([this]() { return bEnableGridSnapping; })
 	);
 
-	EditorCommands->MapAction(
+	EditorCommands->MapAction
+	(
 		Commands.AutoRearrangeUnits,
 		FExecuteAction::CreateRaw(this, &FCRRecoilPatternEditor::Command_SwitchAutoRearrangeUnits),
 		FCanExecuteAction::CreateLambda([]() { return true; }),
-		FIsActionChecked::CreateLambda([&]() { return bEnableAutoRearrangeUnits; })
+		FIsActionChecked::CreateLambda([this]() { return bEnableAutoRearrangeUnits; })
 	);
 
-	EditorCommands->MapAction(
+	EditorCommands->MapAction
+	(
 		Commands.UnitScaling,
 		FExecuteAction::CreateRaw(this, &FCRRecoilPatternEditor::Command_SwitchUnitScaling),
 		FCanExecuteAction::CreateLambda([this]() { return !RecoilUnitSelection.IsEmpty(); }),
-		FIsActionChecked::CreateLambda([&]() { return bEnableUnitScaling; })
+		FIsActionChecked::CreateLambda([this]() { return bEnableUnitScaling; })
 	);
 
-	EditorCommands->MapAction(
+	EditorCommands->MapAction
+	(
 		Commands.ZoomViewToFit,
-		FExecuteAction::CreateRaw(this, &FCRRecoilPatternEditor::Command_ZoomToFitAllUnits));
+		FExecuteAction::CreateRaw(this, &FCRRecoilPatternEditor::Command_ZoomToFitAllUnits)
+	);
 
-	EditorCommands->MapAction(
+	EditorCommands->MapAction
+	(
 		Commands.ToggleShortcutsVisibility,
 		FExecuteAction::CreateRaw(this, &FCRRecoilPatternEditor::Command_ToggleShortcutsVisibility),
 		FCanExecuteAction::CreateLambda([]() { return true; }),
-		FIsActionChecked::CreateLambda([&]() { return bShowShortcuts; })
+		FIsActionChecked::CreateLambda([this]() { return bShowShortcuts; })
 	);
 }
 
@@ -284,20 +298,6 @@ void FCRRecoilPatternEditor::ExtendToolBar()
 
 void FCRRecoilPatternEditor::InitializeEditor(const EToolkitMode::Type Mode, const TSharedPtr<IToolkitHost>& InitToolkitHost, UObject* InAsset)
 {
-	check(InAsset);
-	const UCRRecoilPattern* RecoilPattern = Cast<UCRRecoilPattern>(InAsset);
-	check(RecoilPattern);
-	UCRRecoilUnitGraph* RecoilUnitGraph = RecoilPattern->GetUnitGraph();
-	check(RecoilUnitGraph);
-
-	if (const UWorld* World = RecoilUnitGraph->GetWorld(); World && World->WorldType != EWorldType::EditorPreview)
-	{
-		// avoid too many unit editions' side effect for IDs.
-		// rearrange only if we are not in PIE
-		RecoilUnitGraph->RearrangeID();
-	}
-
-	// Map the commands in this editor's commandList and functions
 	MapCommands();
 	InitAssetEditor(Mode, InitToolkitHost, ToolkitFName, CreateEditorLayout(), true, true, InAsset);
 	ExtendToolBar();

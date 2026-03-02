@@ -1,4 +1,4 @@
-﻿// Copyright CrystalVapor 2024, All rights reserved.
+﻿// Copyright CrystalVapor 2026, All rights reserved.
 
 #include "Data/CRRecoilPattern.h"
 #include "Data/CRRecoilUnitGraph.h"

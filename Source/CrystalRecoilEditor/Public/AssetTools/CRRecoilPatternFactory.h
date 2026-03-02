@@ -1,4 +1,4 @@
-﻿// Copyright CrystalVapor 2024, All rights reserved.
+﻿// Copyright CrystalVapor 2026, All rights reserved.
 
 #pragma once
 
@@ -16,6 +16,8 @@ public:
 	UCRRecoilPatternFactory();
 
 	virtual UObject* FactoryCreateNew(UClass* InClass, UObject* InParent, FName InName, EObjectFlags Flags, UObject* Context, FFeedbackContext* Warn, FName CallingContext) override;
+
+	virtual FString GetDefaultNewAssetName() const override;
 
 	virtual FText GetToolTip() const override;
 };

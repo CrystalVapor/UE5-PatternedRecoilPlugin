@@ -1,4 +1,4 @@
-﻿// Copyright CrystalVapor 2024, All rights reserved.
+﻿// Copyright CrystalVapor 2026, All rights reserved.
 
 #pragma once
 
@@ -42,7 +42,7 @@ class CRYSTALRECOILEDITOR_API FCRRecoilPatternEditor : public FAssetEditorToolki
 public:
 	FCRRecoilPatternEditor();
 
-	static TSharedRef<FCRRecoilPatternEditor> CreateRecoilPatternEditor(EToolkitMode::Type Mode, const TSharedPtr<IToolkitHost>& InitToolkitHost, UCRRecoilPattern* RecoilPattern);
+	static TSharedRef<FCRRecoilPatternEditor> CreateRecoilPatternEditor(const EToolkitMode::Type Mode, const TSharedPtr<IToolkitHost>& InitToolkitHost, UCRRecoilPattern* RecoilPattern);
 
 	virtual FName GetToolkitFName() const override;
 

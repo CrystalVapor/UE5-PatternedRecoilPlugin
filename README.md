@@ -28,7 +28,7 @@ then drive them at runtime through a Blueprint and C++ API.
 2. Implement `ICRRecoilInterface` on the same Actor, overriding:
    - `GetRecoilComponent` return the `CRRecoilComponent`
    - `GetTargetController` return the `APlayerController` to apply recoil to
-3. Create a `CRRecoilPattern` Data Asset and configure the recoil pattern
+3. In the Content Browser, create new `CRRecoilPattern` asset: Add → Gameplay → Recoil Pattern
 4. Set `CRRecoilPattern` in the `CRRecoilComponent` defaults
    - Or call `UCRRecoilComponent::SetRecoilPattern` to assign the pattern at runtime
 5. On fire start: call `ICRRecoilInterface::StartShooting`

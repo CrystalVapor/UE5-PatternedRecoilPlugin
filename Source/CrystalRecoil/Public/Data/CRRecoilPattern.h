@@ -1,4 +1,4 @@
-﻿// Copyright CrystalVapor 2024, All rights reserved.
+﻿// Copyright CrystalVapor 2026, All rights reserved.
 
 #pragma once
 
@@ -59,7 +59,7 @@ public:
 	int32 GetMaxShotIndex() const;
 
 	UPROPERTY()
-	UCRRecoilUnitGraph* RecoilUnitGraph = nullptr;
+	TObjectPtr<UCRRecoilUnitGraph> RecoilUnitGraph;
 
 	/**
 	* Controls how fast the recoil kick reaches its peak

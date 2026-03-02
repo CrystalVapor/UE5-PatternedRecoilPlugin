@@ -1,16 +1,16 @@
-﻿// Copyright CrystalVapor 2024, All rights reserved.
+﻿// Copyright CrystalVapor 2026, All rights reserved.
 
 #pragma once
 
 #include "CoreMinimal.h"
 #include "Widgets/SCompoundWidget.h"
-#include "Misc/StringOutputDevice.h"
-#include "Data/CRRecoilUnitGraph.h"
 #include "Editor/CRRecoilUnitGraphWidgetDragOperations.h"
 #include "CRRecoilUnitGraphEditor.generated.h"
 
 class FCRRecoilUnitSelection;
 class UCRRecoilPattern;
+class SCRRecoilUnitGraphBackgroundWidget;
+class FCRRecoilPatternEditor;
 
 namespace CrystalRecoilEditor
 {
@@ -26,20 +26,12 @@ namespace CrystalRecoilEditor
 	};
 }
 
-class SCRRecoilUnitGraphBackgroundWidget;
-class FCRRecoilPatternEditor;
-
 USTRUCT()
 struct FCRRecoilUnitClipboardData
 {
 	GENERATED_BODY()
 
-	bool ImportFromString(const FString& ImportString)
-	{
-		FStringOutputDevice errors;
-		StaticStruct()->ImportText(*ImportString, this, nullptr, 0, &errors, StaticStruct()->GetName(), true);
-		return errors.IsEmpty();
-	}
+	bool ImportFromString(const FString& ImportString);
 
 	UPROPERTY()
 	TArray<FVector2f> RecoilUnitLocations;
@@ -48,18 +40,9 @@ struct FCRRecoilUnitClipboardData
 class CRYSTALRECOILEDITOR_API SCRRecoilUnitGraphWidget : public SCompoundWidget
 {
 public:
-	SLATE_BEGIN_ARGS(SCRRecoilUnitGraphWidget)
-	{
-	}
-
+	SLATE_BEGIN_ARGS(SCRRecoilUnitGraphWidget){}
 	SLATE_ARGUMENT(FCRRecoilPatternEditor*, RecoilPatternEditor)
 	SLATE_END_ARGS()
-
-	enum EAxis
-	{
-		Axis_X,
-		Axis_Y
-	};
 
 	void Construct(const FArguments& InArgs);
 
@@ -89,7 +72,7 @@ public:
 
 	void DrawGridAxisNumbers(FSlateWindowElementList& OutDrawElements, const FGeometry& AllottedGeometry, const int32 BaseLayerID) const;
 
-	void DrawSingleGridAxisNumber(const int32 LineIndex, const float OffsetFromGraphOriginToWidgetCenter, const EAxis Axis, const FSlateFontInfo& NumberFontInfo, const TSharedRef<FSlateFontMeasure>& FontMeasure, const int32 GridAxisStep, const FGeometry& AllottedGeometry, FSlateWindowElementList& OutDrawElements, const int32 BaseLayerID) const;
+	void DrawSingleGridAxisNumber(const int32 LineIndex, const float OffsetFromGraphOriginToWidgetCenter, const bool bXAxis, const FSlateFontInfo& NumberFontInfo, const TSharedRef<FSlateFontMeasure>& FontMeasure, const int32 GridAxisStep, const FGeometry& AllottedGeometry, FSlateWindowElementList& OutDrawElements, const int32 BaseLayerID) const;
 
 	void DrawSelectionBox(FSlateWindowElementList& OutDrawElements, const FGeometry& AllottedGeometry, const int32 BaseLayerID) const;
 
