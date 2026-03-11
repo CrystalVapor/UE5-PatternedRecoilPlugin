@@ -23,6 +23,7 @@ namespace CrystalRecoilEditor
 		RecoilUnitSelectionBoxLayer,
 		RecoilUnitNumbersLayer,
 		GridCoordinateLayer,
+		DragPositionLabelLayer,
 	};
 }
 

@@ -498,6 +498,25 @@ void FCRRecoilPatternEditor::Command_ToggleShortcutsVisibility()
 	bShowShortcuts = !bShowShortcuts;
 }
 
+void FCRRecoilPatternEditor::RefreshUnitPosition() const
+{
+	if (RecoilUnitSelection.GetNum() != 1 || !SelectedUnitScope.IsValid() || !UnitDetailsWidget.IsValid())
+	{
+		return;
+	}
+
+	const int32 UnitID = RecoilUnitSelection.GetSelection()[0];
+	const FCRRecoilUnit* ActualUnit = GetRecoilUnitGraph()->GetUnitByID(UnitID);
+	if (!ActualUnit)
+	{
+		return;
+	}
+
+	FCRRecoilUnit* ScopedUnit = reinterpret_cast<FCRRecoilUnit*>(SelectedUnitScope->GetStructMemory());
+	ScopedUnit->Position = ActualUnit->Position;
+	UnitDetailsWidget->SetStructureData(SelectedUnitScope);
+}
+
 TSharedRef<SWidget> FCRRecoilPatternEditor::GetMenuContent_UnitsSnapping()
 {
 	FMenuBuilder MenuBuilder(true, nullptr);

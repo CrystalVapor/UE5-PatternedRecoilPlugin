@@ -108,6 +108,8 @@ public:
 
 	void Command_ToggleShortcutsVisibility();
 
+	void RefreshUnitPosition() const;
+
 	bool bShowShortcuts = true;
 
 	bool bEnableUnitScaling = false;

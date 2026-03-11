@@ -379,6 +379,7 @@ FReply SCRRecoilUnitGraphWidget::OnMouseMove(const FGeometry& MyGeometry, const 
 		}
 
 		TryAutoRearrangeUnits();
+		RecoilPatternEditor->RefreshUnitPosition();
 	}
 
 	if (ScaleUnitsDrag.IsSet())
@@ -479,6 +480,31 @@ void SCRRecoilUnitGraphWidget::DrawRecoilUnits(FSlateWindowElementList& OutDrawE
 			const FLinearColor NumberColor = bIsSelected ? FLinearColor::White : FLinearColor::Black;
 
 			FSlateDrawElement::MakeText(OutDrawElements, UnitNumberLayerID, AllottedGeometry.ToPaintGeometry(FSlateLayoutTransform(RecoilUnitDrawPanelLocation + TextOffset)), NumberString, NumberFontInfo, ESlateDrawEffect::None, NumberColor);
+		}
+	}
+
+	// Draw position labels next to selected units while dragging
+	if (CurrentRecoilUnitGraph->bDrawDragPositionLabels && MoveUnitsDrag.IsSet() && MoveUnitsDrag->IsDragging())
+	{
+		const TSharedRef<FSlateFontMeasure> FontMeasure = FSlateApplication::Get().GetRenderer()->GetFontMeasureService();
+		const FSlateFontInfo LabelFontInfo = FCoreStyle::GetDefaultFontStyle("Regular", 9);
+		const int32 DragLabelLayerID = BaseLayerID + CrystalRecoilEditor::EEditorLayerOffset::DragPositionLabelLayer;
+		const float LabelOffsetX = UnitDrawSize.X * 0.5f + 6.f;
+
+		for (int32 Index = 0; Index < UnitCount; ++Index)
+		{
+			const FCRRecoilUnit& RecoilUnit = CurrentRecoilUnitGraph->GetUnitAt(Index);
+			if (!UnitSelection.IsUnitSelected(RecoilUnit.ID))
+			{
+				continue;
+			}
+
+			const FVector2f UnitCenterPanelLocation = CurrentBackgroundWidget->GraphCoordToPanelCoord(RecoilCoordsToGraphCoords(RecoilUnit.Position));
+			const FString LabelText = FString::Printf(TEXT("%.2f, %.2f"), RecoilUnit.Position.X, RecoilUnit.Position.Y);
+			const FVector2f LabelSize = FontMeasure->Measure(LabelText, LabelFontInfo);
+			const FVector2f LabelPosition(UnitCenterPanelLocation.X + LabelOffsetX, UnitCenterPanelLocation.Y - LabelSize.Y * 0.5f);
+
+			FSlateDrawElement::MakeText(OutDrawElements, DragLabelLayerID, AllottedGeometry.ToPaintGeometry(FSlateLayoutTransform(LabelPosition)), LabelText, LabelFontInfo, ESlateDrawEffect::None, FLinearColor::Gray);
 		}
 	}
 }
