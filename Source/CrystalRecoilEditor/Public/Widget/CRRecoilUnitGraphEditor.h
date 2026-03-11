@@ -72,7 +72,7 @@ public:
 
 	void DrawGridAxisNumbers(FSlateWindowElementList& OutDrawElements, const FGeometry& AllottedGeometry, const int32 BaseLayerID) const;
 
-	void DrawSingleGridAxisNumber(const int32 LineIndex, const float OffsetFromGraphOriginToWidgetCenter, const bool bXAxis, const FSlateFontInfo& NumberFontInfo, const TSharedRef<FSlateFontMeasure>& FontMeasure, const int32 GridAxisStep, const FGeometry& AllottedGeometry, FSlateWindowElementList& OutDrawElements, const int32 BaseLayerID) const;
+	void DrawSingleGridAxisNumber(const int32 GridLineNumber, const bool bXAxis, const FSlateFontInfo& NumberFontInfo, const TSharedRef<FSlateFontMeasure>& FontMeasure, const FGeometry& AllottedGeometry, FSlateWindowElementList& OutDrawElements, const int32 BaseLayerID) const;
 
 	void DrawSelectionBox(FSlateWindowElementList& OutDrawElements, const FGeometry& AllottedGeometry, const int32 BaseLayerID) const;
 

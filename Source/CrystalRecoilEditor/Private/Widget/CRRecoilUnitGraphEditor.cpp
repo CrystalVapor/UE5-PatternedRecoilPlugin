@@ -485,33 +485,32 @@ void SCRRecoilUnitGraphWidget::DrawRecoilUnits(FSlateWindowElementList& OutDrawE
 
 void SCRRecoilUnitGraphWidget::DrawGridAxisNumbers(FSlateWindowElementList& OutDrawElements, const FGeometry& AllottedGeometry, const int32 BaseLayerID) const
 {
-	const FVector2d GraphOriginViewOffset = BackgroundWidget->GetZoomedAndCenterBasedViewOffset();
 	const FVector2D LocalSize = GetTickSpaceGeometry().GetLocalSize();
 	const int32 GridAxisStep = BackgroundWidget->GetGridAxisStep();
-	const float MaxWindowLength = FMath::Max(LocalSize.X, LocalSize.Y);
-	const int32 TotalDrawnGridLines = FMath::CeilToInt(MaxWindowLength / ScaleFromRecoilCoordsToGraphCoords);
 	const TSharedRef<FSlateFontMeasure> FontMeasure = FSlateApplication::Get().GetRenderer()->GetFontMeasureService();
 	const FSlateFontInfo NumberFontInfo = FCoreStyle::GetDefaultFontStyle("Regular", 10);
+	const float Zoom = BackgroundWidget->GetZoomAmount();
+	const FVector2D ViewOffset = BackgroundWidget->GetViewOffset();
 
-	// Draw Center
-	DrawSingleGridAxisNumber(0, GraphOriginViewOffset.X, true, NumberFontInfo, FontMeasure, GridAxisStep, AllottedGeometry, OutDrawElements, BaseLayerID);
-	DrawSingleGridAxisNumber(0, GraphOriginViewOffset.Y, false, NumberFontInfo, FontMeasure, GridAxisStep, AllottedGeometry, OutDrawElements, BaseLayerID);
+	// Compute the exact visible grid number range from the viewport bounds - panel X = [0, W] maps to graph X = [ViewOffset.X, ViewOffset.X + W / Zoom]
+	const int32 XGridStart = FMath::FloorToInt(ViewOffset.X / ScaleFromRecoilCoordsToGraphCoords / GridAxisStep) * GridAxisStep;
+	const int32 XGridEnd = FMath::CeilToInt((ViewOffset.X + LocalSize.X / Zoom) / ScaleFromRecoilCoordsToGraphCoords / GridAxisStep) * GridAxisStep;
+	const int32 YGridStart = FMath::FloorToInt(ViewOffset.Y / ScaleFromRecoilCoordsToGraphCoords / GridAxisStep) * GridAxisStep;
+	const int32 YGridEnd = FMath::CeilToInt((ViewOffset.Y + LocalSize.Y / Zoom) / ScaleFromRecoilCoordsToGraphCoords / GridAxisStep) * GridAxisStep;
 
-	// Draw Others
-	for (int32 Index = 1; Index <= TotalDrawnGridLines; ++Index)
+	for (int32 GridNum = XGridStart; GridNum <= XGridEnd; GridNum += GridAxisStep)
 	{
-		DrawSingleGridAxisNumber(Index, GraphOriginViewOffset.X, true, NumberFontInfo, FontMeasure, GridAxisStep, AllottedGeometry, OutDrawElements, BaseLayerID);
-		DrawSingleGridAxisNumber(-Index, GraphOriginViewOffset.X, true, NumberFontInfo, FontMeasure, GridAxisStep, AllottedGeometry, OutDrawElements, BaseLayerID);
-		DrawSingleGridAxisNumber(Index, GraphOriginViewOffset.Y, false, NumberFontInfo, FontMeasure, GridAxisStep, AllottedGeometry, OutDrawElements, BaseLayerID);
-		DrawSingleGridAxisNumber(-Index, GraphOriginViewOffset.Y, false, NumberFontInfo, FontMeasure, GridAxisStep, AllottedGeometry, OutDrawElements, BaseLayerID);
+		DrawSingleGridAxisNumber(GridNum, true, NumberFontInfo, FontMeasure, AllottedGeometry, OutDrawElements, BaseLayerID);
+	}
+
+	for (int32 GridNum = YGridStart; GridNum <= YGridEnd; GridNum += GridAxisStep)
+	{
+		DrawSingleGridAxisNumber(GridNum, false, NumberFontInfo, FontMeasure, AllottedGeometry, OutDrawElements, BaseLayerID);
 	}
 }
 
-void SCRRecoilUnitGraphWidget::DrawSingleGridAxisNumber(const int32 LineIndex, const float OffsetFromGraphOriginToWidgetCenter, const bool bXAxis, const FSlateFontInfo& NumberFontInfo, const TSharedRef<FSlateFontMeasure>& FontMeasure, const int32 GridAxisStep, const FGeometry& AllottedGeometry, FSlateWindowElementList& OutDrawElements, const int32 BaseLayerID) const
+void SCRRecoilUnitGraphWidget::DrawSingleGridAxisNumber(const int32 GridLineNumber, const bool bXAxis, const FSlateFontInfo& NumberFontInfo, const TSharedRef<FSlateFontMeasure>& FontMeasure, const FGeometry& AllottedGeometry, FSlateWindowElementList& OutDrawElements, const int32 BaseLayerID) const
 {
-	const int32 GridLineNumberOffsetFromGraphCenter = FMath::FloorToInt(OffsetFromGraphOriginToWidgetCenter / ScaleFromRecoilCoordsToGraphCoords / GridAxisStep) * GridAxisStep;
-	const int32 GridLineNumber = LineIndex * GridAxisStep + GridLineNumberOffsetFromGraphCenter;
-
 	const FVector2d GridLineNumberGraphCoords = bXAxis ? FVector2d(GridLineNumber * ScaleFromRecoilCoordsToGraphCoords, 0.f) : FVector2d(0.f, GridLineNumber * ScaleFromRecoilCoordsToGraphCoords);
 	FVector2f GridLineNumberPanelCoords = BackgroundWidget->GraphCoordToPanelCoord(GridLineNumberGraphCoords);
 

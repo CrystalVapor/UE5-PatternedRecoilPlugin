@@ -99,7 +99,7 @@ public:
 
 	/**
 	* C++ version of EndShooting.
-	* Does nothing by default — override in C++ implementations if needed.
+	* Does nothing by default - override in C++ implementations if needed.
 	*
 	* Example use cases:
 	* - Start burst cooldown tracking
