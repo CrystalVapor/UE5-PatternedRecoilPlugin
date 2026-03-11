@@ -1,7 +1,5 @@
 # Crystal Recoil
 
-## Introduction
-
 CrystalRecoil is an Unreal Engine plugin that provides a pattern-based recoil system for shooter games.
 Define per-weapon recoil patterns visually using the built-in Recoil Pattern Editor,
 then drive them at runtime through a Blueprint and C++ API.
