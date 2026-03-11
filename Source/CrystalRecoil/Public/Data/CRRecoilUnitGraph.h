@@ -86,22 +86,25 @@ public:
 	#endif
 
 	#if WITH_EDITORONLY_DATA
-	UPROPERTY(EditAnywhere, Transient, NonTransactional, Category = "Editor Graph")
+	UPROPERTY(EditAnywhere, Category = "Editor Graph")
 	bool bDrawUnitNumbers = true;
 
-	UPROPERTY(EditAnywhere, Transient, NonTransactional, Meta = (ClampMin = 4.f, ClampMax = 24.f), Category = "Editor Graph")
+	UPROPERTY(EditAnywhere, Category = "Editor Graph")
+	bool bDrawDragPositionLabels = true;
+
+	UPROPERTY(EditAnywhere, Meta = (ClampMin = 4.f, ClampMax = 24.f), Category = "Editor Graph")
 	float UnitNumbersFontSize = 8.f;
 
-	UPROPERTY(EditAnywhere, Transient, NonTransactional, Meta = (ClampMin = 5.f, ClampMax = 100.f), Category = "Editor Graph")
+	UPROPERTY(EditAnywhere, Meta = (ClampMin = 5.f, ClampMax = 100.f), Category = "Editor Graph")
 	float UnitDrawSize = 18.f;
 
-	UPROPERTY(EditAnywhere, Transient, NonTransactional, Meta = (ClampMin = 0.f, ClampMax = 1.f), Category = "Editor Graph")
+	UPROPERTY(EditAnywhere, Meta = (ClampMin = 0.f, ClampMax = 1.f), Category = "Editor Graph")
 	float UnitLinesOpacity = 0.3f;
 
-	UPROPERTY(EditAnywhere, Transient, NonTransactional, Meta = (ClampMin = 4.f, ClampMax = 24.f), Category = "Editor Graph")
+	UPROPERTY(EditAnywhere, Meta = (ClampMin = 4.f, ClampMax = 24.f), Category = "Editor Graph")
 	float OriginDrawSize = 8.f;
 
-	UPROPERTY(EditAnywhere, Transient, NonTransactional, Meta = (ClampMin = 0.f, ClampMax = 1.f), Category = "Editor Graph")
+	UPROPERTY(EditAnywhere, Meta = (ClampMin = 0.f, ClampMax = 1.f), Category = "Editor Graph")
 	float OriginOpacity = 0.5f;
 
 	/**

@@ -379,6 +379,7 @@ FReply SCRRecoilUnitGraphWidget::OnMouseMove(const FGeometry& MyGeometry, const 
 		}
 
 		TryAutoRearrangeUnits();
+		RecoilPatternEditor->RefreshUnitPosition();
 	}
 
 	if (ScaleUnitsDrag.IsSet())
@@ -481,37 +482,61 @@ void SCRRecoilUnitGraphWidget::DrawRecoilUnits(FSlateWindowElementList& OutDrawE
 			FSlateDrawElement::MakeText(OutDrawElements, UnitNumberLayerID, AllottedGeometry.ToPaintGeometry(FSlateLayoutTransform(RecoilUnitDrawPanelLocation + TextOffset)), NumberString, NumberFontInfo, ESlateDrawEffect::None, NumberColor);
 		}
 	}
+
+	// Draw position labels next to selected units while dragging
+	if (CurrentRecoilUnitGraph->bDrawDragPositionLabels && MoveUnitsDrag.IsSet() && MoveUnitsDrag->IsDragging())
+	{
+		const TSharedRef<FSlateFontMeasure> FontMeasure = FSlateApplication::Get().GetRenderer()->GetFontMeasureService();
+		const FSlateFontInfo LabelFontInfo = FCoreStyle::GetDefaultFontStyle("Regular", 9);
+		const int32 DragLabelLayerID = BaseLayerID + CrystalRecoilEditor::EEditorLayerOffset::DragPositionLabelLayer;
+		const float LabelOffsetX = UnitDrawSize.X * 0.5f + 6.f;
+
+		for (int32 Index = 0; Index < UnitCount; ++Index)
+		{
+			const FCRRecoilUnit& RecoilUnit = CurrentRecoilUnitGraph->GetUnitAt(Index);
+			if (!UnitSelection.IsUnitSelected(RecoilUnit.ID))
+			{
+				continue;
+			}
+
+			const FVector2f UnitCenterPanelLocation = CurrentBackgroundWidget->GraphCoordToPanelCoord(RecoilCoordsToGraphCoords(RecoilUnit.Position));
+			const FString LabelText = FString::Printf(TEXT("%.2f, %.2f"), RecoilUnit.Position.X, RecoilUnit.Position.Y);
+			const FVector2f LabelSize = FontMeasure->Measure(LabelText, LabelFontInfo);
+			const FVector2f LabelPosition(UnitCenterPanelLocation.X + LabelOffsetX, UnitCenterPanelLocation.Y - LabelSize.Y * 0.5f);
+
+			FSlateDrawElement::MakeText(OutDrawElements, DragLabelLayerID, AllottedGeometry.ToPaintGeometry(FSlateLayoutTransform(LabelPosition)), LabelText, LabelFontInfo, ESlateDrawEffect::None, FLinearColor::Gray);
+		}
+	}
 }
 
 void SCRRecoilUnitGraphWidget::DrawGridAxisNumbers(FSlateWindowElementList& OutDrawElements, const FGeometry& AllottedGeometry, const int32 BaseLayerID) const
 {
-	const FVector2d GraphOriginViewOffset = BackgroundWidget->GetZoomedAndCenterBasedViewOffset();
 	const FVector2D LocalSize = GetTickSpaceGeometry().GetLocalSize();
 	const int32 GridAxisStep = BackgroundWidget->GetGridAxisStep();
-	const float MaxWindowLength = FMath::Max(LocalSize.X, LocalSize.Y);
-	const int32 TotalDrawnGridLines = FMath::CeilToInt(MaxWindowLength / ScaleFromRecoilCoordsToGraphCoords);
 	const TSharedRef<FSlateFontMeasure> FontMeasure = FSlateApplication::Get().GetRenderer()->GetFontMeasureService();
 	const FSlateFontInfo NumberFontInfo = FCoreStyle::GetDefaultFontStyle("Regular", 10);
+	const float Zoom = BackgroundWidget->GetZoomAmount();
+	const FVector2D ViewOffset = BackgroundWidget->GetViewOffset();
 
-	// Draw Center
-	DrawSingleGridAxisNumber(0, GraphOriginViewOffset.X, true, NumberFontInfo, FontMeasure, GridAxisStep, AllottedGeometry, OutDrawElements, BaseLayerID);
-	DrawSingleGridAxisNumber(0, GraphOriginViewOffset.Y, false, NumberFontInfo, FontMeasure, GridAxisStep, AllottedGeometry, OutDrawElements, BaseLayerID);
+	// Compute the exact visible grid number range from the viewport bounds - panel X = [0, W] maps to graph X = [ViewOffset.X, ViewOffset.X + W / Zoom]
+	const int32 XGridStart = FMath::FloorToInt(ViewOffset.X / ScaleFromRecoilCoordsToGraphCoords / GridAxisStep) * GridAxisStep;
+	const int32 XGridEnd = FMath::CeilToInt((ViewOffset.X + LocalSize.X / Zoom) / ScaleFromRecoilCoordsToGraphCoords / GridAxisStep) * GridAxisStep;
+	const int32 YGridStart = FMath::FloorToInt(ViewOffset.Y / ScaleFromRecoilCoordsToGraphCoords / GridAxisStep) * GridAxisStep;
+	const int32 YGridEnd = FMath::CeilToInt((ViewOffset.Y + LocalSize.Y / Zoom) / ScaleFromRecoilCoordsToGraphCoords / GridAxisStep) * GridAxisStep;
 
-	// Draw Others
-	for (int32 Index = 1; Index <= TotalDrawnGridLines; ++Index)
+	for (int32 GridNum = XGridStart; GridNum <= XGridEnd; GridNum += GridAxisStep)
 	{
-		DrawSingleGridAxisNumber(Index, GraphOriginViewOffset.X, true, NumberFontInfo, FontMeasure, GridAxisStep, AllottedGeometry, OutDrawElements, BaseLayerID);
-		DrawSingleGridAxisNumber(-Index, GraphOriginViewOffset.X, true, NumberFontInfo, FontMeasure, GridAxisStep, AllottedGeometry, OutDrawElements, BaseLayerID);
-		DrawSingleGridAxisNumber(Index, GraphOriginViewOffset.Y, false, NumberFontInfo, FontMeasure, GridAxisStep, AllottedGeometry, OutDrawElements, BaseLayerID);
-		DrawSingleGridAxisNumber(-Index, GraphOriginViewOffset.Y, false, NumberFontInfo, FontMeasure, GridAxisStep, AllottedGeometry, OutDrawElements, BaseLayerID);
+		DrawSingleGridAxisNumber(GridNum, true, NumberFontInfo, FontMeasure, AllottedGeometry, OutDrawElements, BaseLayerID);
+	}
+
+	for (int32 GridNum = YGridStart; GridNum <= YGridEnd; GridNum += GridAxisStep)
+	{
+		DrawSingleGridAxisNumber(GridNum, false, NumberFontInfo, FontMeasure, AllottedGeometry, OutDrawElements, BaseLayerID);
 	}
 }
 
-void SCRRecoilUnitGraphWidget::DrawSingleGridAxisNumber(const int32 LineIndex, const float OffsetFromGraphOriginToWidgetCenter, const bool bXAxis, const FSlateFontInfo& NumberFontInfo, const TSharedRef<FSlateFontMeasure>& FontMeasure, const int32 GridAxisStep, const FGeometry& AllottedGeometry, FSlateWindowElementList& OutDrawElements, const int32 BaseLayerID) const
+void SCRRecoilUnitGraphWidget::DrawSingleGridAxisNumber(const int32 GridLineNumber, const bool bXAxis, const FSlateFontInfo& NumberFontInfo, const TSharedRef<FSlateFontMeasure>& FontMeasure, const FGeometry& AllottedGeometry, FSlateWindowElementList& OutDrawElements, const int32 BaseLayerID) const
 {
-	const int32 GridLineNumberOffsetFromGraphCenter = FMath::FloorToInt(OffsetFromGraphOriginToWidgetCenter / ScaleFromRecoilCoordsToGraphCoords / GridAxisStep) * GridAxisStep;
-	const int32 GridLineNumber = LineIndex * GridAxisStep + GridLineNumberOffsetFromGraphCenter;
-
 	const FVector2d GridLineNumberGraphCoords = bXAxis ? FVector2d(GridLineNumber * ScaleFromRecoilCoordsToGraphCoords, 0.f) : FVector2d(0.f, GridLineNumber * ScaleFromRecoilCoordsToGraphCoords);
 	FVector2f GridLineNumberPanelCoords = BackgroundWidget->GraphCoordToPanelCoord(GridLineNumberGraphCoords);
 

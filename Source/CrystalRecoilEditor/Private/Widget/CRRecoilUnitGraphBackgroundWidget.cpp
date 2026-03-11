@@ -85,7 +85,7 @@ FVector2D SCRRecoilUnitGraphBackgroundWidget::GetZoomedAndCenterBasedViewOffset(
 
 int32 SCRRecoilUnitGraphBackgroundWidget::GetGridAxisStep() const
 {
-	return FMath::CeilToInt(GetZoomAmount() * 0.5f);
+	return FMath::Max(1, FMath::CeilToInt(2.f / GetZoomAmount()));
 }
 
 void SCRRecoilUnitGraphBackgroundWidget::SetViewOffset(const FVector2D& Value)
