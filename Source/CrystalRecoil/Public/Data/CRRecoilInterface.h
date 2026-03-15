@@ -27,7 +27,7 @@ public:
 	* Blueprint implementable version.
 	* @return The actor's recoil component
 	*/
-	UFUNCTION(BlueprintCallable, BlueprintNativeEvent, DisplayName = "Get Recoil Component")
+	UFUNCTION(BlueprintCallable, BlueprintNativeEvent, DisplayName = "Get Recoil Component", Category = "Recoil Interface")
 	UCRRecoilComponent* K2_GetRecoilComponent();
 	UCRRecoilComponent* K2_GetRecoilComponent_Implementation();
 
@@ -36,7 +36,7 @@ public:
 	* Blueprint implementable version.
 	* @return The target controller for recoil application
 	*/
-	UFUNCTION(BlueprintCallable, BlueprintNativeEvent, DisplayName = "Get Target Controller")
+	UFUNCTION(BlueprintCallable, BlueprintNativeEvent, DisplayName = "Get Target Controller", Category = "Recoil Interface")
 	AController* K2_GetTargetController() const;
 	AController* K2_GetTargetController_Implementation() const;
 
@@ -45,7 +45,7 @@ public:
 	* Call this when the player presses the fire button.
 	* Blueprint implementable version - override only if you need custom behavior.
 	*/
-	UFUNCTION(BlueprintCallable, DisplayName = "Start Shooting", BlueprintNativeEvent)
+	UFUNCTION(BlueprintCallable, DisplayName = "Start Shooting", BlueprintNativeEvent, Category = "Recoil Interface")
 	void K2_StartShooting();
 	void K2_StartShooting_Implementation();
 
@@ -54,7 +54,7 @@ public:
 	* Call this when the player releases the fire button or after a timeout.
 	* Blueprint implementable version - override if you need custom behavior. Does nothing by default.
 	*/
-	UFUNCTION(BlueprintCallable, DisplayName = "End Shooting", BlueprintNativeEvent)
+	UFUNCTION(BlueprintCallable, DisplayName = "End Shooting", BlueprintNativeEvent, Category = "Recoil Interface")
 	void K2_EndShooting();
 	void K2_EndShooting_Implementation();
 
@@ -63,7 +63,7 @@ public:
 	* Call this each time a bullet is fired.
 	* Blueprint implementable version - override only if you need custom behavior.
 	*/
-	UFUNCTION(BlueprintCallable, DisplayName = "Apply Shot", BlueprintNativeEvent)
+	UFUNCTION(BlueprintCallable, DisplayName = "Apply Shot", BlueprintNativeEvent, Category = "Recoil Interface")
 	void K2_ApplyShot();
 	void K2_ApplyShot_Implementation();
 
