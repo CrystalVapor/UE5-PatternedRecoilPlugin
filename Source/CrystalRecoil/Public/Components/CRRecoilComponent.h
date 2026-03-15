@@ -1,4 +1,4 @@
-﻿// Copyright CrystalVapor 2026, All rights reserved.
+// Copyright CrystalVapor 2026, All rights reserved.
 
 #pragma once
 
@@ -7,29 +7,48 @@
 #include "CRRecoilComponent.generated.h"
 
 class UCRRecoilPattern;
-class ICRRecoilInterface;
 
 UCLASS(ClassGroup = (CrystalRecoil), Meta = (BlueprintSpawnableComponent), DisplayName = "Recoil Component")
 class CRYSTALRECOIL_API UCRRecoilComponent : public UActorComponent
 {
 	GENERATED_BODY()
-
-	friend ICRRecoilInterface;
-
 public:
 	UCRRecoilComponent();
 
 	virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
 
 	/**
-	* Assigns the recoil pattern to use for this component
-	* Call before StartShooting
+	* Sets the controller that receives recoil effects (camera kick).
+	* Call this on BeginPlay before StartShooting.
+	* If not called or set to nullptr, falls back to the first PlayerController in the world.
+	*/
+	UFUNCTION(BlueprintCallable, Category = "Recoil Component")
+	void SetTargetController(AController* InController);
+
+	/**
+	* Resets recoil state and prepares for a new firing sequence.
+	* Call when the player presses the fire button.
+	* Override in subclasses to reset additional state on fire start.
+	*/
+	UFUNCTION(BlueprintCallable, Category = "Recoil Component")
+	virtual void StartShooting();
+
+	/**
+	* Applies recoil for a single shot.
+	* Call each time a bullet is fired.
+	*/
+	UFUNCTION(BlueprintCallable, Category = "Recoil Component")
+	virtual void ApplyShot();
+
+	/**
+	* Assigns the recoil pattern to use for this component.
+	* Call before StartShooting.
 	*/
 	UFUNCTION(BlueprintCallable, Meta = (AllowAbstract = false), Category = "Recoil Component")
 	void SetRecoilPattern(UCRRecoilPattern* InRecoilPattern);
 
 	/**
-	* Scales all recoil magnitudes
+	* Scales all recoil magnitudes.
 	* 1.0 = full strength, 0.5 = half, 0.0 = no recoil
 	*/
 	UFUNCTION(BlueprintCallable, Category = "Recoil Component")
@@ -40,16 +59,7 @@ public:
 	float GetRecoilStrength() const;
 
 protected:
-	virtual void ApplyInputToController(AController* TargetController, const FRotator& Input);
-
-	virtual void ApplyShot();
-
-	/**
-	* Resets recoil state and prepares for a new firing sequence.
-	* Called automatically by StartShooting via ICRRecoilInterface.
-	* Override in subclasses to reset additional state on fire start.
-	*/
-	virtual void StartShooting();
+	virtual void ApplyInputToController(AController* InTargetController, const FRotator& Input);
 
 	/**
 	* Called before each recoil delta is applied to the controller.
@@ -76,7 +86,7 @@ protected:
 	virtual bool ProcessDeltaRecoveryRotation(FRotator& DeltaRecoveryRotation);
 
 	/**
-	* Reduces the recovery distance if player is already pulling the mouse in the recovery direction
+	* Reduces the recovery distance if player is already pulling the mouse in the recovery direction.
 	* Example: Gun kicks up 5°. Player pulls mouse down 2° while recovering.
 	* Compensation says "player already moved 2° toward home, so we only need to recover 3° now instead of 5°"
 	*/
@@ -109,5 +119,5 @@ protected:
 	FRotator RecoilInputGeneratedLastFrame = FRotator::ZeroRotator;
 	FRotator CachedControllerRotation = FRotator::ZeroRotator;
 
-	TWeakObjectPtr<APlayerController> PlayerController;
+	mutable TWeakObjectPtr<AController> TargetController;
 };
