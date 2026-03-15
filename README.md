@@ -23,15 +23,13 @@ then drive them at runtime through a Blueprint and C++ API.
 ## Usage
 
 1. Add `CRRecoilComponent` to your Actor (Pawn, Weapon, etc.)
-2. Implement `ICRRecoilInterface` on the same Actor, overriding:
-   - `GetRecoilComponent` return the `CRRecoilComponent`
-   - `GetTargetController` return the `APlayerController` to apply recoil to
-3. In the Content Browser, create new `CRRecoilPattern` asset: Add → Gameplay → Recoil Pattern
-4. Set `CRRecoilPattern` in the `CRRecoilComponent` defaults
+2. In the Content Browser, create a new `CRRecoilPattern` asset: Add → Gameplay → Recoil Pattern
+3. Set `CRRecoilPattern` in the `CRRecoilComponent` defaults
    - Or call `UCRRecoilComponent::SetRecoilPattern` to assign the pattern at runtime
-5. On fire start: call `ICRRecoilInterface::StartShooting`
-6. On each shot: call `ICRRecoilInterface::ApplyShot`
-7. On fire end: call `ICRRecoilInterface::EndShooting`, but only if overridden. Does nothing by default.
+4. On `BeginPlay`, optionally call `UCRRecoilComponent::SetTargetController` to specify which controller receives recoil
+   - If not called, defaults to `GetFirstPlayerController` automatically
+5. On fire start: call `UCRRecoilComponent::StartShooting`
+6. On each shot: call `UCRRecoilComponent::ApplyShot`
 
 ## Recoil Pattern Behavior
 
