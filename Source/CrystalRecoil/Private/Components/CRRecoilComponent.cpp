@@ -1,10 +1,7 @@
 ﻿// Copyright CrystalVapor 2026, All rights reserved.
 
 #include "Components/CRRecoilComponent.h"
-#include "Data/CRRecoilInterface.h"
 #include "Data/CRRecoilPattern.h"
-
-DEFINE_LOG_CATEGORY_STATIC(LogRecoilComponent, Log, All);
 
 UCRRecoilComponent::UCRRecoilComponent()
 {
@@ -18,9 +15,9 @@ void UCRRecoilComponent::TickComponent(float DeltaTime, ELevelTick TickType, FAc
 	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
 
 	const UWorld* World = GetWorld();
-	AController* TargetController = GetTargetController();
+	AController* Controller = GetTargetController();
 
-	if (!World || !TargetController || !RecoilPattern)
+	if (!World || !Controller || !RecoilPattern)
 	{
 		SetComponentTickEnabled(false);
 		return;
@@ -28,13 +25,13 @@ void UCRRecoilComponent::TickComponent(float DeltaTime, ELevelTick TickType, FAc
 
 	FRotator DeltaRecoilRotation = FRotator::ZeroRotator;
 	FRotator DeltaRecoveryRotation = FRotator::ZeroRotator;
-	const FRotator CurrentRotation = TargetController->GetControlRotation();
+	const FRotator CurrentRotation = Controller->GetControlRotation();
 
 	const FRotator RotationDelta = (CurrentRotation - CachedControllerRotation).GetNormalized();
 	FRotator InputLastFrame = RotationDelta - RecoilInputGeneratedLastFrame;
 	InputLastFrame.Normalize();
 
-	CachedControllerRotation = TargetController->GetControlRotation();
+	CachedControllerRotation = Controller->GetControlRotation();
 
 	// Apply recoil uplift
 	if (!RecoilToApply.IsNearlyZero())
@@ -56,7 +53,7 @@ void UCRRecoilComponent::TickComponent(float DeltaTime, ELevelTick TickType, FAc
 
 		if (ProcessDeltaRecoilRotation(DeltaRecoilRotation))
 		{
-			ApplyInputToController(TargetController, DeltaRecoilRotation);
+			ApplyInputToController(Controller, DeltaRecoilRotation);
 			RecoilToApply -= DeltaRecoilRotation;
 			RecoilToRecover += DeltaRecoilRotation;
 		}
@@ -101,7 +98,7 @@ void UCRRecoilComponent::TickComponent(float DeltaTime, ELevelTick TickType, FAc
 
 			if (ProcessDeltaRecoveryRotation(DeltaRecoveryRotation))
 			{
-				ApplyInputToController(TargetController, DeltaRecoveryRotation);
+				ApplyInputToController(Controller, DeltaRecoveryRotation);
 				RecoilToRecover += DeltaRecoveryRotation;
 			}
 
@@ -176,14 +173,19 @@ void UCRRecoilComponent::ReduceRecoveryByPlayerInput(const FRotator& LastFrameIn
 	CompensateAxis(RecoilToRecover.Yaw, LastFrameInput.Yaw);     // Horizontal
 }
 
-void UCRRecoilComponent::ApplyInputToController(AController* TargetController, const FRotator& Input)
+void UCRRecoilComponent::SetTargetController(AController* InController)
 {
-	if (!TargetController)
+	TargetController = InController;
+}
+
+void UCRRecoilComponent::ApplyInputToController(AController* InTargetController, const FRotator& Input)
+{
+	if (!InTargetController)
 	{
 		return;
 	}
 
-	FRotator CurrentRotation = TargetController->GetControlRotation();
+	FRotator CurrentRotation = InTargetController->GetControlRotation();
 
 	// Apply the recoil delta
 	CurrentRotation.Pitch -= Input.Pitch;
@@ -195,7 +197,7 @@ void UCRRecoilComponent::ApplyInputToController(AController* TargetController, c
 	// Normalize yaw to keep it in -180 to 180 range
 	CurrentRotation.Normalize();
 
-	TargetController->SetControlRotation(CurrentRotation);
+	InTargetController->SetControlRotation(CurrentRotation);
 }
 
 void UCRRecoilComponent::StartShooting()
@@ -236,14 +238,11 @@ float UCRRecoilComponent::GetRecoilStrength() const
 
 AController* UCRRecoilComponent::GetTargetController() const
 {
-	const UObject* Owner = GetOwner();
-	if (!Owner || !Owner->Implements<UCRRecoilInterface>())
+	if (!TargetController.IsValid())
 	{
-		UE_LOG(LogRecoilComponent, Error, TEXT("CRRecoilComponent on '%s': owner must implement ICRRecoilInterface"), Owner ? *Owner->GetName() : TEXT("null"));
-		return nullptr;
+		TargetController = GetWorld()->GetFirstPlayerController();
 	}
-
-	return ICRRecoilInterface::Execute_K2_GetTargetController(Owner);
+	return TargetController.Get();
 }
 
 bool UCRRecoilComponent::ProcessDeltaRecoilRotation(FRotator& DeltaRecoilRotation)
